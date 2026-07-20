@@ -236,13 +236,13 @@
                 <div class="flex items-center gap-4 flex-col sm:flex-row text-center sm:text-left">
                     <div id="qrcode-container" class="bg-white p-3 rounded-xl shadow-md border border-slate-200 flex items-center justify-center"></div>
                     <div>
-                        <h4 class="font-bold text-slate-800 text-base">QR Code ประจำตัวเรือบุคคลนี้</h4>
+                        <h4 class="font-bold text-slate-800 text-base">QR Code ประจำเรือ</h4>
                         <p class="text-xs text-slate-500 mt-0.5">ใช้สแกนเพื่อเข้าถึงหน้ารายละเอียดนี้โดยตรงผ่านมือถือ</p>
                     </div>
                 </div>
-                <!-- ปุ่มจัดการ QR Code -->
-                <div class="flex gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
-                    <button type="button" id="copy-qr-btn" class="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                <!-- ปุ่มจัดการ QR Code (เพิ่มการซ่อนตอนปริ้นและตอนเซฟ PDF) -->
+<div class="flex gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap print:hidden" data-html2canvas-ignore="true">
+    <button type="button" id="copy-qr-btn" class="...">
                         📋 คัดลอกรูป
                     </button>
                     <button type="button" id="download-qr-btn" class="flex-1 sm:flex-none bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
