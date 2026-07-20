@@ -293,7 +293,7 @@
             </div>
 
             <hr class="border-slate-100">
-            <!-- จุดบังคับขึ้นหน้า 2 สำหรับ PDF และการพิมพ์ -->
+          
             <div class="flex flex-col items-center w-full mt-4">
                 <div class="w-full h-48 bg-slate-100 rounded-2xl border border-slate-300 shadow-md overflow-hidden flex items-center justify-center p-2">
                     <img id="view-boat-img" src="https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-contain">
@@ -533,8 +533,7 @@
                     filename:     `ข้อมูลเรือ_${boatId}.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2, useCORS: true }, 
-                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                    pagebreak:    { mode: ['css', 'legacy'] } // เพิ่มบรรทัดนี้เพื่อให้ html2pdf แบ่งหน้าตาม CSS
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
                 html2pdf().set(opt).from(element).save().then(() => {
                     // แสดงปุ่มกลับมาเหมือนเดิม
