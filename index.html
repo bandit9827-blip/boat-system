@@ -27,7 +27,6 @@
                 margin: 0 !important;
                 padding: 0 !important;
             }
-            /* คลาสบังคับซ่อนตอนพิมพ์ 100% */
             .no-print {
                 display: none !important;
             }
@@ -43,7 +42,7 @@
 <body class="py-8 px-4 md:px-6 min-h-screen flex flex-col items-center gap-8">
 
     <!-- ================= 1. ส่วนบันทึกข้อมูล (INSERT FORM) ================= -->
-    <div id="admin-insert-section" class="no-print max-w-4xl w-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-blue-100">
+    <div id="admin-insert-section" class="print:hidden max-w-4xl w-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-blue-100">
         <div class="gradient-bg p-6 text-white relative space-y-4">
             <div class="flex flex-col md:flex-row items-center justify-between gap-4 p-4">
                 <div class="flex flex-col items-center shrink-0">
@@ -123,7 +122,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">เบอร์โทรศัพท์ <span class="text-red-500">*</span></label>
-                        <input type="tel" name="phoneNumber" required class="w-full p-2.5 border border-gray-300 rounded-lg text-sm bg-white text-gray-900">
+                        <input type="tel" name="phoneNumber" id="phone-input" maxlength="11" placeholder="000-0000000" required class="w-full p-2.5 border border-gray-300 rounded-lg text-sm bg-white text-gray-900">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">พิกัดจุดจอดเรือ <span class="text-red-500">*</span></label>
@@ -215,7 +214,7 @@
 
     <!-- ================= 2. ส่วนแสดงผลการค้นหา ================= -->
     <div class="max-w-4xl w-full bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-        <div id="search-section" class="no-print p-6 bg-slate-800 text-white flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div id="search-section" class="print:hidden p-6 bg-slate-800 text-white flex flex-col sm:flex-row gap-4 items-center justify-between">
             <div>
                 <h2 class="text-lg font-bold flex items-center gap-2">🔍 ตรวจสอบและค้นหาข้อมูลเรือ</h2>
                 <p class="text-xs text-slate-300">กรอกรหัสเรือเพื่อดึงข้อมูลรูปภาพและรายละเอียดทั้งหมด</p>
@@ -226,29 +225,29 @@
             </div>
         </div>
 
-        <div id="search-status" class="no-print hidden p-3 bg-amber-50 text-amber-800 text-center font-medium text-sm border-b"></div>
+        <div id="search-status" class="print:hidden hidden p-3 bg-amber-50 text-amber-800 text-center font-medium text-sm border-b"></div>
 
         <!-- กล่องข้อมูลที่จะสั่ง Print หรือ บันทึก PDF -->
         <div id="result-card" class="p-6 md:p-8 space-y-8 bg-white hidden">
             
-            <!-- QR Code Section -->
+            <!-- QR Code Section (ตั้ง id ไว้เพื่อสั่งซ่อน) -->
             <div id="qr-display-section" class="bg-blue-50/60 border border-blue-100 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-4 flex-col sm:flex-row text-center sm:text-left">
                     <div id="qrcode-container" class="bg-white p-3 rounded-xl shadow-md border border-slate-200 flex items-center justify-center"></div>
                     <div>
-                        <h4 class="font-bold text-slate-800 text-base">QR Code ประจำเรือ</h4>
+                        <h4 class="font-bold text-slate-800 text-base">QR Code ประจำตัวเรือบุคคลนี้</h4>
                         <p class="text-xs text-slate-500 mt-0.5">ใช้สแกนเพื่อเข้าถึงหน้ารายละเอียดนี้โดยตรงผ่านมือถือ</p>
                     </div>
                 </div>
-                <!-- ✅ ใส่คลาส no-print ตรงนี้ และในปุ่มด้วย เพื่อบังคับซ่อน 100% เวลาพิมพ์ -->
-                <div class="no-print flex gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
-                    <button type="button" id="copy-qr-btn" class="no-print flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                <!-- ปุ่มจัดการ QR Code -->
+                <div class="flex gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+                    <button type="button" id="copy-qr-btn" class="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
                         📋 คัดลอกรูป
                     </button>
-                    <button type="button" id="download-qr-btn" class="no-print flex-1 sm:flex-none bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                    <button type="button" id="download-qr-btn" class="flex-1 sm:flex-none bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
                         💾 โหลดภาพ
                     </button>
-                    <button type="button" id="print-btn" class="no-print bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs shadow flex-1 sm:flex-none flex items-center justify-center gap-1.5">
+                    <button type="button" id="print-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-lg text-xs shadow flex-1 sm:flex-none flex items-center justify-center gap-1.5 print:hidden">
                         🖨️ พิมพ์ (A4)
                     </button>
                 </div>
@@ -294,16 +293,19 @@
 
             <hr class="border-slate-100">
 
-            <div class="flex flex-col items-center w-full">
+            <!-- จุดบังคับขึ้นหน้า 2 สำหรับ PDF และการพิมพ์ -->
+            <div style="page-break-before: always;"></div>
+
+            <div class="flex flex-col items-center w-full mt-8">
                 <div class="w-full h-60 bg-slate-100 rounded-2xl border border-slate-300 shadow-md overflow-hidden flex items-center justify-center p-2">
                     <img id="view-boat-img" src="https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-contain">
                 </div>
                 <span class="text-sm font-bold text-slate-700 mt-2 bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200">รูปเรือ</span>
             </div>
 
-            <!-- ปุ่มบันทึก PDF (ซ่อนตอนพิมพ์อัตโนมัติด้วย no-print) -->
-            <div id="pdf-action-section" class="no-print flex justify-center pt-4">
-                <button type="button" id="save-pdf-btn" class="no-print bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-xl text-sm shadow-lg flex items-center justify-center gap-2 transition-all">
+            <!-- ปุ่มบันทึก PDF -->
+            <div id="pdf-action-section" class="flex justify-center pt-4 print:hidden">
+                <button type="button" id="save-pdf-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-xl text-sm shadow-lg flex items-center justify-center gap-2 transition-all">
                     📄 บันทึกข้อมูลเป็น PDF
                 </button>
             </div>
@@ -352,6 +354,21 @@
             let formatted = '';
             for (let i = 0; i < value.length; i++) {
                 if (i === 1 || i === 5 || i === 10 || i === 12) {
+                    formatted += '-';
+                }
+                formatted += value[i];
+            }
+            e.target.value = formatted;
+        });
+        // จัดรูปแบบเบอร์โทรศัพท์อัตโนมัติ (000-0000000)
+        document.getElementById('phone-input').addEventListener('input', function (e) {
+            // ลบตัวอักษรที่ไม่ใช่ตัวเลขออกทั้งหมด
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            let formatted = '';
+            
+            for (let i = 0; i < value.length; i++) {
+                // เติมขีด (-) หลังจากตัวเลขที่ 3
+                if (i === 3) {
                     formatted += '-';
                 }
                 formatted += value[i];
@@ -461,44 +478,42 @@
             });
         });
 
-        // ฟังก์ชันของปุ่มคัดลอกรูปภาพ
-        const copyQrBtn = document.getElementById('copy-qr-btn');
-        if (copyQrBtn) {
-            copyQrBtn.addEventListener('click', async function() {
-                const qrImg = document.querySelector('#qrcode-container img');
-                if(!qrImg) { alert("ไม่มีรูปภาพ QR Code ให้คัดลอก"); return; }
-                try {
-                    const response = await fetch(qrImg.src);
-                    const blob = await response.blob();
-                    await navigator.clipboard.write([
-                        new ClipboardItem({ [blob.type]: blob })
-                    ]);
-                    const originalText = this.innerHTML;
-                    this.innerHTML = "✅ คัดลอกสำเร็จ!";
-                    this.className = this.className.replace('bg-blue-600', 'bg-green-600');
-                    setTimeout(() => {
-                        this.innerHTML = originalText;
-                        this.className = this.className.replace('bg-green-600', 'bg-blue-600');
-                    }, 2000);
-                } catch (err) {
-                    alert("เบราว์เซอร์นี้ไม่รองรับการคัดลอกรูปภาพโดยตรง กรุณาใช้ปุ่มดาวน์โหลดภาพแทนครับ");
-                }
-            });
-        }
+        // ปุ่มคัดลอก QR Code
+        document.getElementById('copy-qr-btn').addEventListener('click', async function() {
+            const qrImg = document.querySelector('#qrcode-container img');
+            if(!qrImg) { alert("ไม่มีรูปภาพ QR Code ให้คัดลอก"); return; }
+            
+            try {
+                const response = await fetch(qrImg.src);
+                const blob = await response.blob();
+                await navigator.clipboard.write([
+                    new ClipboardItem({ [blob.type]: blob })
+                ]);
+                
+                const originalText = this.innerHTML;
+                this.innerHTML = "✅ คัดลอกสำเร็จ!";
+                this.className = this.className.replace('bg-blue-600', 'bg-green-600');
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.className = this.className.replace('bg-green-600', 'bg-blue-600');
+                }, 2000);
 
-        // ฟังก์ชันของปุ่มดาวน์โหลดรูปภาพ
-        const downloadQrBtn = document.getElementById('download-qr-btn');
-        if (downloadQrBtn) {
-            downloadQrBtn.addEventListener('click', function() {
-                const qrImg = document.querySelector('#qrcode-container img');
-                const boatId = document.getElementById('view-boat-id').innerText;
-                if(!qrImg) { alert("ไม่มีรูปภาพ QR Code ให้ดาวน์โหลด"); return; }
-                const link = document.createElement('a');
-                link.href = qrImg.src;
-                link.download = `QR_Boat_${boatId}.png`;
-                link.click();
-            });
-        }
+            } catch (err) {
+                alert("เบราว์เซอร์นี้ไม่รองรับการคัดลอกรูปภาพโดยตรง กรุณาใช้ปุ่มดาวน์โหลดภาพแทนครับ");
+            }
+        });
+
+        // ปุ่มดาวน์โหลด QR Code
+        document.getElementById('download-qr-btn').addEventListener('click', function() {
+            const qrImg = document.querySelector('#qrcode-container img');
+            const boatId = document.getElementById('view-boat-id').innerText;
+            if(!qrImg) { alert("ไม่มีรูปภาพ QR Code ให้ดาวน์โหลด"); return; }
+            
+            const link = document.createElement('a');
+            link.href = qrImg.src;
+            link.download = `QR_Boat_${boatId}.png`;
+            link.click();
+        });
 
         // ปุ่มพิมพ์กระดาษ A4
         const printBtn = document.getElementById('print-btn');
@@ -524,7 +539,8 @@
                     filename:     `ข้อมูลเรือ_${boatId}.pdf`,
                     image:        { type: 'jpeg', quality: 0.98 },
                     html2canvas:  { scale: 2, useCORS: true }, 
-                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak:    { mode: ['css', 'legacy'] } // เพิ่มบรรทัดนี้เพื่อให้ html2pdf แบ่งหน้าตาม CSS
                 };
 
                 html2pdf().set(opt).from(element).save().then(() => {
