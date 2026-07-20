@@ -219,7 +219,8 @@
                 <h2 class="text-lg font-bold flex items-center gap-2">🔍 ตรวจสอบและค้นหาข้อมูลเรือ</h2>
                 <p class="text-xs text-slate-300">กรอกรหัสเรือเพื่อดึงข้อมูลรูปภาพและรายละเอียดทั้งหมด</p>
             </div>
-            <div class="flex gap-2 w-full sm:w-auto flex-1 sm:max-w-md">
+            <!-- ปุ่มจัดการ QR Code -->
+                <div class="flex gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap print:hidden" data-html2canvas-ignore="true">
                 <input type="text" id="search-input" placeholder="เช่น ดต-01-F-001" class="w-full p-2.5 rounded-lg text-slate-900 font-bold tracking-wider uppercase text-sm focus:outline-none">
                 <button type="button" id="search-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-6 py-2.5 rounded-lg text-sm shrink-0 shadow">ค้นหา</button>
             </div>
@@ -304,7 +305,7 @@
             </div>
 
             <!-- ปุ่มบันทึก PDF -->
-            <div id="pdf-action-section" class="flex justify-center pt-4 print:hidden">
+            <div id="pdf-action-section" class="flex justify-center pt-4 print:hidden" data-html2canvas-ignore="true">
                 <button type="button" id="save-pdf-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-xl text-sm shadow-lg flex items-center justify-center gap-2 transition-all">
                     📄 บันทึกข้อมูลเป็น PDF
                 </button>
@@ -529,11 +530,7 @@
             savePdfBtn.addEventListener('click', function() {
                 const element = document.getElementById('result-card');
                 const boatId = document.getElementById('view-boat-id').innerText;
-                
                 // ซ่อนปุ่ม PDF และกล่องข้อความสถานะ ชั่วคราวก่อน Print
-                this.style.display = 'none';
-                document.getElementById('search-status').style.display = 'none';
-
                 const opt = {
                     margin:       [10, 10, 10, 10],
                     filename:     `ข้อมูลเรือ_${boatId}.pdf`,
@@ -542,12 +539,8 @@
                     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
                     pagebreak:    { mode: ['css', 'legacy'] } // เพิ่มบรรทัดนี้เพื่อให้ html2pdf แบ่งหน้าตาม CSS
                 };
-
                 html2pdf().set(opt).from(element).save().then(() => {
                     // แสดงปุ่มกลับมาเหมือนเดิม
-                    savePdfBtn.style.display = 'flex';
-                    const searchStatus = document.getElementById('search-status');
-                    if(searchStatus.innerText !== "") searchStatus.style.display = 'block';
                 });
             });
         }
