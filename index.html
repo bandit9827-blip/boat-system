@@ -14,54 +14,39 @@
     <style>
     /* ตั้งค่าหน้ากระดาษ A4 และบังคับให้พิมพ์สีพื้นหลังออกมาด้วย */
     @media print {
-    @page {
-        size: A4 portrait;
-        margin: 0; /* 🌟 เปลี่ยนขอบกระดาษให้เป็น 0 ไปเลย เพื่อไม่ให้มีอะไรมาดันเนื้อหา */
-    }
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
     
-    html, body {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        background-color: white !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
+        html, body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            background-color: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
 
-    /* ซ่อนปุ่มหรือเมนูที่อยู่เหนือการ์ด (อย่าลืมเอา class="no-print" ไปใส่ที่ปุ่มปริ๊นด้วยนะครับ) */
-    .no-print {
-        display: none !important;
-    }
-
-    #result-card {
-        box-shadow: none !important;
-        border: none !important;
-        
-        /* 🌟 1. ดันการ์ดให้ชิดขอบบนสุด จะได้ไม่เหลือพื้นที่ว่างหน้า 1 */
-        margin: 0 auto !important; 
-        
-        /* 🌟 2. เปลี่ยนมาใช้ zoom แทน transform */
-        zoom: 0.85; /* ปรับตัวเลขได้: 1.0 คือปกติ, 0.85 คือย่อลงมา 15% */
-        
-        /* 🌟 3. ปิดคำสั่ง avoid ไว้ก่อนเพื่อเช็กว่าโดนดันเพราะสาเหตุนี้ไหม */
-        /* page-break-inside: avoid; */
-        /* break-inside: avoid; */
-    }
-}
-        
-        /* 🌟 แนะนำเพิ่ม: ใส่ Class นี้ให้กับปุ่ม "พิมพ์" หรือแถบเมนูด้านบน เพื่อซ่อนทิ้งตอนปริ๊น */
+        /* ซ่อนปุ่มหรือเมนูที่อยู่เหนือการ์ด */
         .no-print {
             display: none !important;
         }
+
+        #result-card {
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 auto !important; 
+            zoom: 0.80; 
+        }
     }
-</style>
+    </style>
 </head>
 <body class="py-8 px-4 md:px-6 min-h-screen flex flex-col items-center gap-8">
 
     <!-- ================= 1. ส่วนบันทึกข้อมูล (INSERT FORM) ================= -->
     <div id="admin-insert-section" class="print:hidden max-w-4xl w-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-blue-100">
         <div class="gradient-bg p-6 text-white relative space-y-4">
-            <!-- เอา id="header-section" ที่เราเคยใส่ตรงนี้ออกได้เลยครับ -->
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4 p-4...">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 p-4">
                 <div class="flex flex-col items-center shrink-0">
                     <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center overflow-hidden border-2 border-white/40 shadow-inner p-1">
                         <img id="logo1-preview" src="https://lh3.googleusercontent.com/d/1Fjc8-v4ToFLJSKm8HFNczszh12Pcttoe" alt="โลโก้หน่วยงาน 1" class="object-contain w-full h-full">
@@ -82,16 +67,28 @@
                 <span class="block text-sm font-bold text-blue-900 mb-3 text-center">⚙️ เครื่องมือสร้างรหัสเรืออัตโนมัติ</span>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">1. อำเภอ</label>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">1. ตำบล</label>
                         <select id="code-district" class="w-full p-2 bg-blue-50/50 rounded-lg border border-blue-200 text-xs font-semibold text-blue-900">
-                            <option value="ดต">ดต (อ.ดอนตาล)</option>
+                            <option value="ดต">ดต (ต.ดอนตาล)</option>
+                            <option value="พ">พ (ต.โพธิ์ไทร)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">2. รหัสตำบลประจำเรือ</label>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">2. รหัสหมู่บ้านประจำเรือ</label>
                         <select id="code-subdistrict" class="w-full p-2 bg-blue-50/50 rounded-lg border border-blue-200 text-xs font-semibold text-blue-900">
-                            <option value="01">01 (ตำบลดอนตาล)</option>
-                            <option value="02">02 (ตำบลโพธิ์ไทร)</option>
+                            <option value="">-- เลือกหมู่ --</option>
+                                <option value="01">หมู่ที่ 1</option>
+                                <option value="02">หมู่ที่ 2</option>
+                                <option value="03">หมู่ที่ 3</option>
+                                <option value="04">หมู่ที่ 4</option>
+                                <option value="05">หมู่ที่ 5</option>
+                                <option value="06">หมู่ที่ 6</option>
+                                <option value="07">หมู่ที่ 7</option>
+                                <option value="08">หมู่ที่ 8</option>
+                                <option value="09">หมู่ที่ 9</option>
+                                <option value="10">หมู่ที่ 10</option>
+                                <option value="11">หมู่ที่ 11</option>
+                                <option value="12">หมู่ที่ 12</option>
                         </select>
                     </div>
                     <div>
@@ -99,7 +96,6 @@
                         <select id="code-type" class="w-full p-2 bg-blue-50/50 rounded-lg border border-blue-200 text-xs font-semibold text-blue-900">
                             <option value="F">F (เรือประมง)</option>
                             <option value="P">P (เรือโดยสาร)</option>
-                            <option value="T">T (เรือท่องเที่ยว)</option>
                         </select>
                     </div>
                     <div>
@@ -113,7 +109,7 @@
         <form id="boatForm" class="p-6 space-y-6">
             <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg shadow-sm">
                 <span class="text-xs font-bold text-blue-700 uppercase tracking-wider block">รหัสเรือประจำระบบ</span>
-                <input type="text" id="boat-id" name="boatId" readonly class="text-3xl font-extrabold text-blue-900 bg-transparent border-none p-0 focus:ring-0 focus:outline-none w-full tracking-wider mt-1" value="ดต.-01-F-001">
+                <input type="text" id="boat-id" name="boatId" readonly class="text-3xl font-extrabold text-blue-900 bg-transparent border-none p-0 focus:ring-0 focus:outline-none w-full tracking-wider mt-1" value="ดต-01-F-001">
             </div>
 
             <div class="space-y-4">
@@ -122,10 +118,50 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-1">ชื่อ-นามสกุล <span class="text-red-500">*</span></label>
                         <input type="text" name="ownerName" required class="w-full p-2.5 border border-gray-300 rounded-lg text-sm bg-white text-gray-900">
                     </div>
+<div>
+    <label class="block text-sm font-semibold text-gray-700 mb-1">เลขบัตรประจำตัวประชาชน <span class="text-red-500">*</span></label>
+    <input type="text" name="idcard" required class="w-full p-2.5 border border-gray-300 rounded-lg text-sm bg-white text-gray-900"> 
+</div>
+
+<!-- ส่วนแสดงผลในหน้าค้นหา -->
+<script>
+    // 1. ในฟังก์ชันบันทึกข้อมูล (Payload)
+    const payload = {
+        // ... ข้อมูลเดิม
+        idcard: formData.get('idcard') 
+    };
+
+    // 2. ในส่วนการค้นหา (แสดงผล)
+    // เพิ่มคำสั่งนี้ในฟังก์ชันค้นหา (ในส่วน res.found)
+    document.getElementById('view-id-card').innerText = res.idCard;
+
+    // 3. เงื่อนไข: ซ่อนเลขบัตรถ้ามีการสแกน QR Code (มีค่า searchId ใน URL)
+    window.addEventListener('load', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchId = urlParams.get('searchId');
+        
+        if (searchId) {
+            // ซ่อนเลขบัตรประชาชนถ้าเป็นการเข้ามาผ่านการสแกน QR
+            document.getElementById('id-card-section').style.display = 'none';
+        }
+    });
+</script>
+                
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">เบอร์โทรศัพท์ <span class="text-red-500">*</span></label>
                         <input type="tel" name="phoneNumber" required class="w-full p-2.5 border border-gray-300 rounded-lg text-sm bg-white text-gray-900">
                     </div>
+                    <div>
+                    <!-- แก้ไขจุดนี้เป็น dropdown พิกัดจุดจอดเรือ -->
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">พิกัดจุดจอดเรือ <span class="text-red-500">*</span></label>
+                    <select name="mooringPoint" required class="w-full p-2.5 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 font-medium">
+                        <option value="">-- เลือกพิกัดจุดจอดเรือ --</option>
+                        <option value="จุดจอดเรือด่านประเพณีวัดท่าดอนตาล">จุดจอดเรือด่านประเพณีวัดท่าดอนตาล</option>
+                        <option value="จุดจอดเรือด่านประเพณีบ้านนาโพธิ์">จุดจอดเรือด่านประเพณีบ้านนาโพธิ์</option>
+                        <option value="จุดจอดเรือบ้านโคก-หนองหล่ม">จุดจอดเรือบ้านโคก-หนองหล่ม</option>
+                        <option value="จุดจอดเรือบ้านนาห้วยกอก">จุดจอดเรือบ้านนาห้วยกอก</option>
+                    </select>
+                </div>
                 </div>
 
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
@@ -176,16 +212,10 @@
                         </div>
                     </div>
                 </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">จุดจอดเรือประจำ <span class="text-red-500">*</span></label>
-                    <input type="text" name="mooringPoint" required class="w-full p-2.5 border border-gray-300 rounded-lg text-sm bg-white text-gray-900">
-                </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                     <div class="p-4 bg-blue-50/50 rounded-xl border border-dashed border-blue-300 flex flex-col items-center">
-    <span class="block text-sm font-bold text-blue-900 mb-2">📸 ผู้ครอบครองเรือ</span>
-    <div class="w-24 h-24 bg-white rounded-lg border flex items-center justify-center overflow-hidden mb-2 relative cursor-pointer" onclick="document.getElementById('ownerImage').click()"> relative cursor-pointer" onclick="document.getElementById('ownerImage').click()">
+                        <span class="block text-sm font-bold text-blue-900 mb-2">📸 ผู้ครอบครองเรือ</span>
+                        <div class="w-24 h-24 bg-white rounded-lg border flex items-center justify-center overflow-hidden mb-2 relative cursor-pointer" onclick="document.getElementById('ownerImage').click()">
                             <img id="form-owner-preview" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150" class="object-cover w-full h-full opacity-60">
                         </div>
                         <input type="file" id="ownerImage" accept="image/*" class="hidden">
@@ -211,7 +241,6 @@
 
     <!-- ================= 2. ส่วนแสดงผลการค้นหา ================= -->
     <div class="max-w-4xl w-full bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-        <!-- 🌟 เติม id="search-section" ไว้ที่แท็ก div สีน้ำเงินเข้มด้านล่างนี้ครับ 🌟 -->
         <div id="search-section" class="print:hidden p-6 bg-slate-800 text-white flex flex-col sm:flex-row gap-4 items-center justify-between">
             <div>
                 <h2 class="text-lg font-bold flex items-center gap-2">🔍 ตรวจสอบและค้นหาข้อมูลเรือ</h2>
@@ -244,18 +273,18 @@
                         💾 ดาวน์โหลดภาพ
                     </button>
                     <!-- ปุ่มพิมพ์ข้อมูล -->
-<button type="button" id="print-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg text-sm shadow flex-1 print:hidden flex items-center justify-center gap-2">
-    🖨️ พิมพ์ข้อมูล (A4)
-</button>
+                    <button type="button" id="print-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg text-sm shadow flex-1 print:hidden flex items-center justify-center gap-2">
+                        🖨️ พิมพ์ข้อมูล (A4)
+                    </button>
                 </div>
             </div>
 
             <div class="flex flex-col md:flex-row justify-between items-start gap-8 relative">
-                 items-center self-center md:self-start shrink-0">
+                <div class="flex flex-col items-center self-center md:self-start shrink-0">
                     <div class="w-40 h-40 bg-slate-100 rounded-xl border border-slate-300 shadow-md overflow-hidden flex items-center justify-center p-1">
-                        <img id="view-owner-img" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit<div class="flex flex-col=crop&q=80&w=150" class="w-full h-full object-contain">
+                        <img id="view-owner-img" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150" class="w-full h-full object-contain">
                     </div>
-                    <span class="text-sm font-bold text-slate-700 mt-2 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">รูปเจ้าของเรือ</span>
+                    <span class="text-sm font-bold text-slate-700 mt-2 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">ผู้ครอบครองเรือ</span>
                 </div>
 
                 <div class="flex-1 space-y-4 pt-2 w-full text-center md:text-left">
@@ -272,17 +301,17 @@
                         <div id="view-phone" class="text-lg font-bold text-blue-700">-</div>
                     </div>
                     <div class="space-y-1">
-                        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block">จุดจอดเรือ</span>
+                        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block">พิกัดจุดจอดเรือ</span>
                         <div id="view-mooring" class="text-lg font-medium text-amber-700">-</div>
                     </div>
                     <div class="space-y-1">
-    <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block">ประเภทเรือ</span>
-    <div id="view-boat-type" class="text-lg font-bold text-teal-700">-</div>
-</div>
+                        <span class="text-slate-400 text-xs font-bold uppercase tracking-wider block">ประเภทเรือ</span>
+                        <div id="view-boat-type" class="text-lg font-bold text-teal-700">-</div>
+                    </div>
                 </div>
 
                 <div class="w-full md:w-auto text-center md:text-right bg-blue-50 border border-blue-200 px-6 py-3 rounded-xl shadow-inner md:absolute md:top-0 md:right-0">
-                    <span class="text-xs font-bold text-blue-600 block mb-0.5">รหัสเรือ</span>
+                    <span class="text-xs font-bold text-blue-600 block mb-0.5">รหัสประจำเรือ</span>
                     <div id="view-boat-id" class="text-2xl font-black text-blue-900 tracking-widest">-</div>
                 </div>
             </div>
@@ -341,17 +370,13 @@
             if (searchId) {
                 document.getElementById('search-input').value = searchId;
                 
-                // 1. ซ่อนกรอบด้านบนทั้งหมด (แถบสีน้ำเงิน + ฟอร์ม)
+                // ซ่อนส่วนต่างๆ
                 if (document.getElementById('admin-insert-section')) {
                     document.getElementById('admin-insert-section').style.display = 'none';
                 }
-                
-                // 2. ซ่อนแถบค้นหาสีดำ
                 if (document.getElementById('search-section')) {
                     document.getElementById('search-section').style.display = 'none';
                 }
-
-                // 🌟 3. เพิ่มโค้ดซ่อนปุ่มคัดลอกและดาวน์โหลด QR Code ตรงนี้ครับ 🌟
                 if (document.getElementById('copy-qr-btn')) {
                     document.getElementById('copy-qr-btn').style.display = 'none';
                 }
@@ -367,15 +392,12 @@
             fetchLatestBoatNumber();
         });
 
-        // 🌟 ฟังก์ชันสำหรับสร้าง QR Code 🌟
+        // ฟังก์ชันสำหรับสร้าง QR Code
         function generateQRCode(boatId) {
             const qrContainer = document.getElementById("qrcode-container");
             qrContainer.innerHTML = ""; 
 
-            // เปลี่ยนมาใช้คำสั่งนี้ เพื่อให้ระบบดึงชื่อเว็บใหม่ล่าสุดมาใช้อัตโนมัติ!
             const currentUrl = window.location.origin + window.location.pathname; 
-            
-            // นำเว็บมาต่อท้ายด้วยรหัสเรือ
             const qrUrl = `${currentUrl}?searchId=${encodeURIComponent(boatId)}`;
 
             new QRCode(qrContainer, {
@@ -413,6 +435,21 @@
                         document.getElementById('view-address').innerText = `บ้านเลขที่ ${res.addressNo} หมู่ที่ ${res.moo} ตำบล${res.subDistrict} อำเภอ${res.district} จังหวัด${res.province}`;
                         document.getElementById('view-phone').innerText = res.phoneNumber;
                         document.getElementById('view-mooring').innerText = res.mooringPoint;
+                        
+                        // ===== เพิ่มโค้ดคำนวณและแสดงประเภทเรือตรงนี้ =====
+                        let boatTypeName = "ไม่ระบุ";
+                        if (res.boatId) {
+                            const idParts = res.boatId.split('-');
+                            if (idParts.length >= 3) {
+                                const t = idParts[2];
+                                if (t === 'F') boatTypeName = "เรือประมง (F)";
+                                else if (t === 'P') boatTypeName = "เรือโดยสาร (P)";
+                                else if (t === 'T') boatTypeName = "เรือท่องเที่ยว (T)";
+                                else boatTypeName = t;
+                            }
+                        }
+                        document.getElementById('view-boat-type').innerText = boatTypeName;
+                        // ===========================================
                         
                         if (res.ownerImage) document.getElementById('view-owner-img').src = res.ownerImage;
                         if (res.boatImage) document.getElementById('view-boat-img').src = res.boatImage;
@@ -533,6 +570,7 @@
             const payload = {
                 boatId: targetBoatId,
                 ownerName: formData.get('ownerName'),
+                idcard : formData.get('idcard'),
                 addressNo: formData.get('addressNo'),
                 moo: formData.get('moo'),
                 subDistrict: formData.get('subDistrict'),
@@ -576,6 +614,7 @@
             })
             .finally(() => { submitBtn.disabled = false; });
         });
+        
         // ฟังก์ชันสำหรับสั่งพิมพ์กระดาษ A4
         const printBtn = document.getElementById('print-btn');
         if (printBtn) {
