@@ -393,7 +393,7 @@
                 <div>
     <label class="block text-sm font-semibold mb-1">สิทธิ์การใช้งาน (Role)</label>
     <select name="role" class="w-full p-2.5 border rounded-lg text-sm font-bold bg-gray-50">
-        <option value="user">User (บันทึกข้อมูลได้อย่างเดียว)</option>
+        <option value="user">User (บันทึกและค้นหาข้อมูลได้)</option>
         <option value="search">Search (ค้นหาข้อมูลได้อย่างเดียว)</option>
         <option value="admin">Admin (ใช้งานได้ทุกฟังก์ชัน/ลบได้)</option>
     </select>
@@ -463,7 +463,7 @@
                     } else {
                         // User ซ่อนฟอร์มค้นหา ปุ่มจัดการผู้ใช้ ปุ่มลบ
                         document.getElementById('admin-insert-section').classList.remove('hidden');
-                        document.getElementById('admin-search-section').classList.add('hidden');
+                        document.getElementById('admin-search-section').classList.remove('hidden');
                         document.getElementById('manage-users-btn').classList.add('hidden');
                         document.getElementById('delete-btn').classList.add('hidden');
                     }
