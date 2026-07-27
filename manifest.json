@@ -1,20 +1,20 @@
 {
   "name": "ระบบจัดระเบียบเรืออำเภอดอนตาล",
   "short_name": "จัดระเบียบเรือ",
-  "start_url": ".",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#005b9f",
   "icons": [
     {
-      "src": "icondesktop",
+      "src": "https://raw.githubusercontent.com/bandit9827-blip/boat-system/main/icon-v2.png.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icondesktop",
+      "src": "https://raw.githubusercontent.com/bandit9827-blip/boat-system/main/icon-v2.png.png",
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "start_url": "./",
+  "display": "standalone",
+  "theme_color": "#1e40af",
+  "background_color": "#f0f7ff"
 }
