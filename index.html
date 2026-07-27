@@ -383,12 +383,13 @@
                     <input type="text" name="newPassword" required class="w-full p-2.5 border rounded-lg text-sm bg-gray-50">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold mb-1">สิทธิ์การใช้งาน (Role)</label>
-                    <select name="role" class="w-full p-2.5 border rounded-lg text-sm font-bold bg-gray-50">
-                        <option value="user">User (บันทึกข้อมูลได้อย่างเดียว)</option>
-                        <option value="admin">Admin (ใช้งานได้ทุกฟังก์ชัน/ลบได้)</option>
-                    </select>
-                </div>
+    <label class="block text-sm font-semibold mb-1">สิทธิ์การใช้งาน (Role)</label>
+    <select name="role" class="w-full p-2.5 border rounded-lg text-sm font-bold bg-gray-50">
+        <option value="user">User (บันทึกข้อมูลได้อย่างเดียว)</option>
+        <option value="search">Search (ค้นหาข้อมูลได้อย่างเดียว)</option>
+        <option value="admin">Admin (ใช้งานได้ทุกฟังก์ชัน/ลบได้)</option>
+    </select>
+</div>
                 <div class="flex gap-3 pt-4 border-t">
                     <button type="button" onclick="document.getElementById('user-modal').classList.add('hidden'); document.getElementById('user-modal').classList.remove('flex');" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2.5 rounded-lg transition">ยกเลิก</button>
                     <button type="submit" id="create-user-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg shadow transition">สร้างบัญชี</button>
@@ -432,22 +433,37 @@
                     
                     // แสดงชื่อผู้ใช้
                     document.getElementById('current-user-display').innerText = data.username;
-                    document.getElementById('current-role-display').innerText = (data.role === 'admin') ? "ผู้ดูแลระบบ (Admin)" : "เจ้าหน้าที่ทั่วไป (User)";
+                    
+                    // กำหนดข้อความแสดงสิทธิ์
+                    let roleText = "เจ้าหน้าที่ทั่วไป (User)";
+                    if (data.role === 'admin') roleText = "ผู้ดูแลระบบ (Admin)";
+                    else if (data.role === 'search') roleText = "เจ้าหน้าที่ค้นหา (Search Only)";
+                    document.getElementById('current-role-display').innerText = roleText;
 
                     // ควบคุมสิทธิ์การแสดงผล
                     if(currentUserRole === 'admin') {
+                        document.getElementById('admin-insert-section').classList.remove('hidden');
                         document.getElementById('admin-search-section').classList.remove('hidden');
                         document.getElementById('manage-users-btn').classList.remove('hidden');
                         document.getElementById('delete-btn').classList.remove('hidden');
+                    } else if (currentUserRole === 'search') {
+                        // ถ้าเป็น search ให้ซ่อนฟอร์มบันทึก และแสดงแค่ค้นหา
+                        document.getElementById('admin-insert-section').classList.add('hidden');
+                        document.getElementById('admin-search-section').classList.remove('hidden');
+                        document.getElementById('manage-users-btn').classList.add('hidden');
+                        document.getElementById('delete-btn').classList.add('hidden');
                     } else {
                         // User ซ่อนฟอร์มค้นหา ปุ่มจัดการผู้ใช้ ปุ่มลบ
+                        document.getElementById('admin-insert-section').classList.remove('hidden');
                         document.getElementById('admin-search-section').classList.add('hidden');
                         document.getElementById('manage-users-btn').classList.add('hidden');
                         document.getElementById('delete-btn').classList.add('hidden');
                     }
                     
-                    // โหลดเลขเรือล่าสุดหลังล็อคอิน
-                    fetchLatestBoatNumber();
+                    // โหลดเลขเรือล่าสุดหลังล็อคอิน (เฉพาะคนที่มีสิทธิ์บันทึก)
+                    if(currentUserRole !== 'search') {
+                        fetchLatestBoatNumber();
+                    }
                 } else {
                     status.innerText = "❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
                     status.classList.remove('hidden');
