@@ -652,7 +652,7 @@
 
         // ค้นหาข้อมูลเรือ
         document.getElementById('search-btn').addEventListener('click', function() {
-            const searchId = document.getElementById('search-input').value.trim();
+            const searchId = document.getElementById('search-input').value.trim().toUpperCase();
             const searchStatus = document.getElementById('search-status');
             const resultCard = document.getElementById('result-card');
             
