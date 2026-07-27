@@ -461,12 +461,12 @@
                         document.getElementById('manage-users-btn').classList.add('hidden');
                         document.getElementById('delete-btn').classList.add('hidden');
                     } else {
-                        // User ซ่อนฟอร์มค้นหา ปุ่มจัดการผู้ใช้ ปุ่มลบ
-                        document.getElementById('admin-insert-section').classList.remove('hidden');
-                        document.getElementById('admin-search-section').classList.remove('hidden');
-                        document.getElementById('manage-users-btn').classList.add('hidden');
-                        document.getElementById('delete-btn').classList.add('hidden');
-                    }
+    // สำหรับสิทธิ์ User ให้แสดงทั้งฟอร์มบันทึกและฟอร์มค้นหา (ซ่อนแค่จัดการผู้ใช้ และปุ่มลบ)
+    document.getElementById('admin-insert-section').classList.remove('hidden');
+    document.getElementById('admin-search-section').classList.remove('hidden'); // เปลี่ยนจาก add เป็น remove
+    document.getElementById('manage-users-btn').classList.add('hidden');
+    document.getElementById('delete-btn').classList.add('hidden');
+}
                     
                     // โหลดเลขเรือล่าสุดหลังล็อคอิน (เฉพาะคนที่มีสิทธิ์บันทึก)
                     if(currentUserRole !== 'search') {
