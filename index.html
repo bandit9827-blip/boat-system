@@ -2,11 +2,10 @@
 <html lang="th">
 <head>
     <!-- สำหรับคอมพิวเตอร์และ Android -->
-<link rel="manifest" href="manifest.json">
-
-<!-- เผื่อไว้สำหรับระบบทั่วไปและ iOS -->
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192x192.png">
-<link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="manifest" href="manifest.json">
+    <!-- เผื่อไว้สำหรับระบบทั่วไปและ iOS -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192x192.png">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
     <link rel="manifest" href="manifest.json?v=3">
     <meta name="theme-color" content="#1e40af">
     
@@ -270,8 +269,12 @@
 
                 <div class="pt-4">
                     <div id="status-box" class="hidden p-4 mb-4 rounded-lg text-center font-bold text-sm"></div>
-                    <button type="submit" id="submit-btn" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg text-base">
+                    <button type="submit" id="submit-btn" data-mode="insert" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg text-base">
                         💾 บันทึกข้อมูล
+                    </button>
+                    <!-- ปุ่มยกเลิกการแก้ไข (ซ่อนไว้ก่อน) -->
+                    <button type="button" id="cancel-edit-btn" class="hidden w-full mt-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-xl transition-all text-sm">
+                        ❌ ยกเลิกการแก้ไข
                     </button>
                 </div>
             </form>
@@ -356,7 +359,7 @@
                 </div>
 
                 <hr class="border-slate-100">
-              
+               
                 <div class="flex flex-col items-center w-full mt-4">
                     <div class="w-full h-48 bg-slate-100 rounded-2xl border border-slate-300 shadow-md overflow-hidden flex items-center justify-center p-2">
                         <img id="view-boat-img" src="https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-contain">
@@ -364,10 +367,14 @@
                     <span class="text-sm font-bold text-slate-700 mt-2 bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200">รูปเรือ</span>
                 </div>
 
-                <!-- ปุ่ม PDF และ ปุ่มลบ (เฉพาะ Admin) -->
+                <!-- ปุ่ม PDF, ปุ่มแก้ไข และ ปุ่มลบ -->
                 <div id="pdf-action-section" class="flex flex-wrap justify-center gap-4 pt-4 print:hidden" data-html2canvas-ignore="true">
                     <button type="button" id="save-pdf-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-xl text-sm shadow-lg flex items-center justify-center gap-2 transition-all">
                         📄 บันทึกข้อมูลเป็น PDF
+                    </button>
+                    <!-- ปุ่มแก้ไข (ซ่อนเริ่มต้น จะแสดงเฉพาะ Admin/User) -->
+                    <button type="button" id="edit-btn" class="hidden bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-8 rounded-xl text-sm shadow-lg flex items-center justify-center gap-2 transition-all">
+                        ✏️ แก้ไขข้อมูล
                     </button>
                     <button type="button" id="delete-btn" class="hidden bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-xl text-sm shadow-lg flex items-center justify-center gap-2 transition-all">
                         🗑️ ลบข้อมูลเรือนี้
@@ -414,6 +421,8 @@
         let ownerImgBase64 = "";
         let boatImgBase64 = "";
         let currentUserRole = ""; 
+        let isEditing = false; // ตัวแปรเช็คว่าอยู่ในโหมดแก้ไขหรือไม่
+        let currentSearchData = null; // เก็บข้อมูลล่าสุดที่ค้นหาเจอ เพื่อนำมา Edit
 
         // 1. ระบบ Login
         document.getElementById('loginForm').addEventListener('submit', function(e) {
@@ -462,12 +471,12 @@
                         document.getElementById('manage-users-btn').classList.add('hidden');
                         document.getElementById('delete-btn').classList.add('hidden');
                     } else {
-    // สำหรับสิทธิ์ User ให้แสดงทั้งฟอร์มบันทึกและฟอร์มค้นหา (ซ่อนแค่จัดการผู้ใช้ และปุ่มลบ)
-    document.getElementById('admin-insert-section').classList.remove('hidden');
-    document.getElementById('admin-search-section').classList.remove('hidden'); // เปลี่ยนจาก add เป็น remove
-    document.getElementById('manage-users-btn').classList.add('hidden');
-    document.getElementById('delete-btn').classList.add('hidden');
-}
+                        // สำหรับสิทธิ์ User
+                        document.getElementById('admin-insert-section').classList.remove('hidden');
+                        document.getElementById('admin-search-section').classList.remove('hidden'); 
+                        document.getElementById('manage-users-btn').classList.add('hidden');
+                        document.getElementById('delete-btn').classList.add('hidden');
+                    }
                     
                     // โหลดเลขเรือล่าสุดหลังล็อคอิน (เฉพาะคนที่มีสิทธิ์บันทึก)
                     if(currentUserRole !== 'search') {
@@ -545,7 +554,6 @@
                     document.getElementById('result-card').classList.add('hidden');
                     document.getElementById('search-input').value = "";
                     document.getElementById('search-status').classList.add('hidden');
-                    // อัปเดตเลขเรือใหม่ในฟอร์มบันทึกเผื่อไว้
                     fetchLatestBoatNumber();
                 } else {
                     alert("❌ เกิดข้อผิดพลาด: " + data.error);
@@ -554,10 +562,12 @@
             .finally(() => { btn.innerHTML = originalText; btn.disabled = false; });
         });
 
-        // ================= ส่วนจัดการฟอร์ม (Form Logic เดิม) =================
+        // ================= ส่วนจัดการฟอร์ม (Form Logic) =================
 
         // อัปเดตรหัสเรือตาม Dropdown
         function updateBoatId() {
+            if (isEditing) return; // หากอยู่ในโหมดแก้ไข จะไม่เปลี่ยนรหัสเรืออัตโนมัติ
+
             const district = document.getElementById('code-district').value;
             const subDistrict = document.getElementById('code-subdistrict').value;
             const type = document.getElementById('code-type').value;
@@ -573,6 +583,7 @@
 
         // ดึงเลขล่าสุด
         function fetchLatestBoatNumber() {
+            if (isEditing) return;
             fetch(`${API_URL}?getLatestCount=true`)
             .then(res => res.json())
             .then(data => {
@@ -583,6 +594,30 @@
             })
             .catch(err => console.log("ยังไม่สามารถดึงเลขล่าสุดได้อัตโนมัติ: ", err));
         }
+
+        // รีเซ็ตโหมดแก้ไข กลับเป็นโหมดเพิ่มข้อมูลปกติ
+        function resetFormMode() {
+            isEditing = false;
+            document.getElementById('boatForm').reset();
+            document.getElementById('form-owner-preview').src = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150";
+            document.getElementById('form-boat-preview').src = "https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?auto=format&fit=crop&q=80&w=150";
+            document.getElementById('form-owner-preview').classList.add('opacity-60');
+            document.getElementById('form-boat-preview').classList.add('opacity-60');
+            ownerImgBase64 = ""; 
+            boatImgBase64 = "";
+
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.dataset.mode = "insert";
+            submitBtn.innerHTML = "💾 บันทึกข้อมูล";
+            submitBtn.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
+            submitBtn.classList.add('bg-blue-700', 'hover:bg-blue-800');
+
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+            
+            fetchLatestBoatNumber();
+        }
+
+        document.getElementById('cancel-edit-btn').addEventListener('click', resetFormMode);
 
         // จัดรูปแบบเลขบัตร ปชช และ โทรศัพท์
         document.getElementById('idcard-input').addEventListener('input', function (e) {
@@ -605,27 +640,23 @@
             e.target.value = formatted;
         });
 
-        // เช็ค URL Parameters (สแกน QR) - ข้ามหน้า Login ให้เลยถ้ามีพารามิเตอร์ (เพื่อความสะดวกเวลาสแกน)
+        // เช็ค URL Parameters (สแกน QR)
         window.addEventListener('load', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const searchId = urlParams.get('searchId');
 
             if (searchId) {
-                // ข้ามหน้า Login
                 document.getElementById('login-overlay').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
                 document.getElementById('main-app').classList.add('flex');
                 
-                // ให้สถานะเป็นแบบ Guest (อ่านอย่างเดียว)
                 document.getElementById('current-user-display').innerText = "GUEST (สแกน QR)";
                 document.getElementById('current-role-display').innerText = "ผู้เยี่ยมชม";
                 
-                // ซ่อนส่วนอื่นๆ เหลือแต่ผลลัพธ์
                 document.getElementById('admin-insert-section').style.display = 'none';
                 document.getElementById('admin-search-section').classList.remove('hidden');
                 document.getElementById('search-section').style.display = 'none';
                 
-                // ซ่อนกล่องแสดง QR Code
                 const qrSection = document.getElementById('qr-display-section');
                 if (qrSection) qrSection.style.display = 'none';
 
@@ -659,30 +690,29 @@
             
             if (!rawSearchId) { alert("กรุณากรอกรหัสเรือก่อนครับ"); return; }
 
-            // --- เริ่ม: ระบบจัดรูปแบบค้นหาอัตโนมัติ เติมขีดให้ (เช่น ดต01F001 -> ดต-01-F-001) ---
-            let cleanId = rawSearchId.replace(/-/g, ''); // ลบเครื่องหมายลบออกทั้งหมดก่อน
-            let searchId = rawSearchId; // ค่าเริ่มต้น
+            let cleanId = rawSearchId.replace(/-/g, ''); 
+            let searchId = rawSearchId; 
             
-            // เช็คว่าความยาวพอที่จะแยกส่วนได้หรือไม่ (ขั้นต่ำ 7 ตัว เช่น พ01F001)
             if (cleanId.length >= 7) {
-                let num = cleanId.slice(-3);         // 3 ตัวท้าย (หมายเลขเรือ เช่น 001)
-                let type = cleanId.slice(-4, -3);    // 1 ตัวก่อนหน้า (ประเภทเรือ เช่น F)
-                let sub = cleanId.slice(-6, -4);     // 2 ตัวก่อนหน้า (หมู่ เช่น 01)
-                let dist = cleanId.slice(0, -6);     // ส่วนที่เหลือด้านหน้า (ตำบล เช่น ดต หรือ พ)
-                
-                searchId = `${dist}-${sub}-${type}-${num}`; // ประกอบร่างใหม่โดยใส่ขีด
+                let num = cleanId.slice(-3);
+                let type = cleanId.slice(-4, -3);
+                let sub = cleanId.slice(-6, -4);
+                let dist = cleanId.slice(0, -6);
+                searchId = `${dist}-${sub}-${type}-${num}`; 
             }
-            // --- จบ: ระบบจัดรูปแบบค้นหาอัตโนมัติ ---
 
             searchStatus.className = "p-3 bg-amber-50 text-amber-800 text-center font-medium text-sm border-b block animate-pulse";
             searchStatus.innerText = "⏳ กำลังค้นหาข้อมูลเรือจากระบบ...";
             resultCard.classList.add('hidden');
+            currentSearchData = null; // รีเซ็ต
 
             fetch(`${API_URL}?searchId=${encodeURIComponent(searchId)}&fetchData=true`)
             .then(res => res.json())
             .then(res => {
                 if (res.result === "success") {
                     if (res.found) {
+                        currentSearchData = res; // บันทึกข้อมูลเผื่อไว้กรณีคลิกปุ่ม Edit
+
                         searchStatus.className = "p-3 bg-green-50 text-green-800 text-center font-medium text-sm border-b block";
                         searchStatus.innerText = "🎉 ค้นพบข้อมูลเรียบร้อยแล้ว!";
                         
@@ -696,6 +726,13 @@
                         if (res.ownerImage) document.getElementById('view-owner-img').src = res.ownerImage;
                         if (res.boatImage) document.getElementById('view-boat-img').src = res.boatImage;
                         
+                        // แสดงปุ่มแก้ไขหากเป็น Admin หรือ User
+                        if(currentUserRole === 'admin' || currentUserRole === 'user') {
+                            document.getElementById('edit-btn').classList.remove('hidden');
+                        } else {
+                            document.getElementById('edit-btn').classList.add('hidden');
+                        }
+
                         generateQRCode(res.boatId);
                         resultCard.classList.remove('hidden');
                     } else {
@@ -711,6 +748,48 @@
                 searchStatus.className = "p-3 bg-red-50 text-red-800 text-center font-medium text-sm border-b block";
                 searchStatus.innerText = "❌ ไม่สามารถเชื่อมต่อกับฐานข้อมูลชีตได้";
             });
+        });
+
+        // คลิกปุ่มแก้ไข นำข้อมูลไปใส่ฟอร์ม
+        document.getElementById('edit-btn').addEventListener('click', function() {
+            if (!currentSearchData) return;
+            
+            isEditing = true;
+
+            // นำข้อมูลไปเติมในฟอร์ม
+            document.getElementById('boat-id').value = currentSearchData.boatId || '';
+            document.querySelector('input[name="ownerName"]').value = currentSearchData.ownerName || '';
+            document.querySelector('input[name="idcard"]').value = currentSearchData.idcard || '';
+            document.querySelector('input[name="phoneNumber"]').value = currentSearchData.phoneNumber || '';
+            document.querySelector('select[name="mooringPoint"]').value = currentSearchData.mooringPoint || '';
+            document.querySelector('input[name="addressNo"]').value = currentSearchData.addressNo || '';
+            document.querySelector('select[name="moo"]').value = currentSearchData.moo || '';
+            document.querySelector('select[name="subDistrict"]').value = currentSearchData.subDistrict || '';
+            
+            // นำรูปไปแสดงบน Preview
+            if (currentSearchData.ownerImage) {
+                document.getElementById('form-owner-preview').src = currentSearchData.ownerImage;
+                document.getElementById('form-owner-preview').classList.remove('opacity-60');
+                ownerImgBase64 = currentSearchData.ownerImage;
+            }
+            if (currentSearchData.boatImage) {
+                document.getElementById('form-boat-preview').src = currentSearchData.boatImage;
+                document.getElementById('form-boat-preview').classList.remove('opacity-60');
+                boatImgBase64 = currentSearchData.boatImage;
+            }
+
+            // เปลี่ยนสถานะปุ่ม Submit
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.dataset.mode = "update";
+            submitBtn.innerHTML = "🔄 อัปเดตข้อมูล";
+            submitBtn.classList.remove('bg-blue-700', 'hover:bg-blue-800');
+            submitBtn.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+            
+            // แสดงปุ่มยกเลิกการแก้ไข
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+
+            // เลื่อนหน้าจอขึ้นไปที่ฟอร์ม
+            document.getElementById('admin-insert-section').scrollIntoView({ behavior: 'smooth' });
         });
 
         // จัดการรูปภาพ (บีบอัด)
@@ -752,20 +831,21 @@
         setupImageUpload('ownerImage', 'form-owner-preview', true);
         setupImageUpload('boatImage', 'form-boat-preview', false);
 
-        // ส่งฟอร์มบันทึกข้อมูล (เพิ่ม action: "insert")
+        // ส่งฟอร์ม (รองรับทั้ง Insert และ Update)
         document.getElementById('boatForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const statusBox = document.getElementById('status-box');
             const submitBtn = document.getElementById('submit-btn');
             const targetBoatId = document.getElementById('boat-id').value;
+            const currentMode = submitBtn.dataset.mode || "insert"; // ดึงสถานะว่าเป็น insert หรือ update
 
             statusBox.className = "p-4 mb-4 rounded-lg text-center font-bold text-sm bg-amber-50 text-amber-800 border block animate-pulse";
-            statusBox.innerText = "⏳ กำลังอัปโหลดข้อมูลทั้งหมดเข้าระบบ...";
+            statusBox.innerText = currentMode === "update" ? "⏳ กำลังอัปเดตข้อมูลเข้าระบบ..." : "⏳ กำลังอัปโหลดข้อมูลทั้งหมดเข้าระบบ...";
             submitBtn.disabled = true;
 
             const formData = new FormData(this);
             const payload = {
-                action: "insert", // บอกสคริปต์ว่านี่คือคำสั่งบันทึก
+                action: currentMode, // ส่ง action ไปยัง GAS ว่าเป็นการ insert หรือ update
                 boatId: targetBoatId,
                 ownerName: formData.get('ownerName'),
                 idcard : formData.get('idcard'),
@@ -789,21 +869,16 @@
             .then(res => {
                 if (res.result === "success") {
                     statusBox.className = "p-4 mb-4 rounded-lg text-center font-bold text-sm bg-green-100 text-green-800 border block";
-                    statusBox.innerText = "🎉 บันทึกข้อมูลเรียบร้อยแล้ว";
+                    statusBox.innerText = currentMode === "update" ? "🎉 อัปเดตข้อมูลสำเร็จ!" : "🎉 บันทึกข้อมูลเรียบร้อยแล้ว";
                     
-                    document.getElementById('boatForm').reset();
-                    document.getElementById('form-owner-preview').src = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150";
-                    document.getElementById('form-boat-preview').src = "https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?auto=format&fit=crop&q=80&w=150";
-                    ownerImgBase64 = ""; boatImgBase64 = "";
-                    
-                    // อัปเดตเลขรหัสเรือใหม่
-                    fetchLatestBoatNumber();
+                    // หากทำงานสำเร็จ คืนค่าฟอร์มกลับสู่สภาวะปกติ (โหมด insert)
+                    resetFormMode();
 
-                    // ถ้าเป็น Admin ให้เปิดผลการค้นหาให้ดูเลย
-                    if(currentUserRole === 'admin') {
+                    // เปิดผลการค้นหาให้ดูอัตโนมัติ เพื่อตรวจสอบการเปลี่ยนแปลง
+                    if(currentUserRole === 'admin' || currentUserRole === 'user') {
                         document.getElementById('search-input').value = targetBoatId;
                         document.getElementById('search-btn').click();
-                        statusBox.innerText += " ระบบกำลังดึงรายละเอียดและสร้าง QR Code ด้านล่าง...";
+                        statusBox.innerText += " (ระบบกำลังดึงรายละเอียดล่าสุดเพื่อแสดงผล)";
                     }
                 } else {
                     statusBox.className = "p-4 mb-4 rounded-lg text-center font-bold text-sm bg-red-100 text-red-800 border block";
