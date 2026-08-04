@@ -653,11 +653,26 @@
 
         // ค้นหาข้อมูลเรือ
         document.getElementById('search-btn').addEventListener('click', function() {
-            const searchId = document.getElementById('search-input').value.trim().toUpperCase();
+            let rawSearchId = document.getElementById('search-input').value.trim().toUpperCase();
             const searchStatus = document.getElementById('search-status');
             const resultCard = document.getElementById('result-card');
             
-            if (!searchId) { alert("กรุณากรอกรหัสเรือก่อนครับ"); return; }
+            if (!rawSearchId) { alert("กรุณากรอกรหัสเรือก่อนครับ"); return; }
+
+            // --- เริ่ม: ระบบจัดรูปแบบค้นหาอัตโนมัติ เติมขีดให้ (เช่น ดต01F001 -> ดต-01-F-001) ---
+            let cleanId = rawSearchId.replace(/-/g, ''); // ลบเครื่องหมายลบออกทั้งหมดก่อน
+            let searchId = rawSearchId; // ค่าเริ่มต้น
+            
+            // เช็คว่าความยาวพอที่จะแยกส่วนได้หรือไม่ (ขั้นต่ำ 7 ตัว เช่น พ01F001)
+            if (cleanId.length >= 7) {
+                let num = cleanId.slice(-3);         // 3 ตัวท้าย (หมายเลขเรือ เช่น 001)
+                let type = cleanId.slice(-4, -3);    // 1 ตัวก่อนหน้า (ประเภทเรือ เช่น F)
+                let sub = cleanId.slice(-6, -4);     // 2 ตัวก่อนหน้า (หมู่ เช่น 01)
+                let dist = cleanId.slice(0, -6);     // ส่วนที่เหลือด้านหน้า (ตำบล เช่น ดต หรือ พ)
+                
+                searchId = `${dist}-${sub}-${type}-${num}`; // ประกอบร่างใหม่โดยใส่ขีด
+            }
+            // --- จบ: ระบบจัดรูปแบบค้นหาอัตโนมัติ ---
 
             searchStatus.className = "p-3 bg-amber-50 text-amber-800 text-center font-medium text-sm border-b block animate-pulse";
             searchStatus.innerText = "⏳ กำลังค้นหาข้อมูลเรือจากระบบ...";
