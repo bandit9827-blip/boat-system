@@ -829,12 +829,13 @@
             const statusBox = document.getElementById('status-box');
             const submitBtn = document.getElementById('submit-btn');
             
-            // ดึงสถานะว่าเป็น insert หรือ update
             const currentMode = submitBtn.dataset.mode || "insert"; 
-            // ดึง ID ปัจจุบันจากหน้าจอ (ถ้า insert จะเป็นหน้าตาแบบ ดต-01-F-XXX)
             const targetBoatId = document.getElementById('boat-id').value;
-            // ดึง Prefix ที่ซ่อนไว้
-            const prefix = document.getElementById('boat-id').dataset.prefix || "";
+
+            // ดึงค่าแยกส่วนจาก Dropdown เครื่องมือสร้างรหัส
+            const districtCode = document.getElementById('code-district').value;
+            const villageCode = document.getElementById('code-subdistrict').value || "01";
+            const boatTypeCode = document.getElementById('code-type').value;
 
             statusBox.className = "p-4 mb-4 rounded-lg text-center font-bold text-sm bg-amber-50 text-amber-800 border block animate-pulse";
             statusBox.innerText = currentMode === "update" ? "⏳ กำลังอัปเดตข้อมูลเข้าระบบ..." : "⏳ กำลังอัปโหลดข้อมูลทั้งหมดและรันเลขเข้าระบบ...";
@@ -843,8 +844,10 @@
             const formData = new FormData(this);
             const payload = {
                 action: currentMode,
-                boatId: currentMode === "update" ? targetBoatId : "", // ถ้า insert ไม่ส่ง ID ให้เซิร์ฟเวอร์รันเอาเอง
-                boatPrefix: prefix, // ส่งส่วนหน้าไปให้เซิร์ฟเวอร์
+                boatId: currentMode === "update" ? targetBoatId : "",
+                districtCode: districtCode,   // ส่งรหัสตำบลไป
+                villageCode: villageCode,     // ส่งรหัสหมู่ไป
+                boatTypeCode: boatTypeCode,   // ส่งประเภทเรือไป
                 ownerName: formData.get('ownerName'),
                 idcard : formData.get('idcard'),
                 addressNo: formData.get('addressNo'),
@@ -866,16 +869,13 @@
             .then(res => res.json())
             .then(res => {
                 if (res.result === "success") {
-                    // ดึงรหัสที่ระบบรันเสร็จแล้วมาใช้แสดงผล
                     const finalGeneratedId = res.boatId || targetBoatId;
 
                     statusBox.className = "p-4 mb-4 rounded-lg text-center font-bold text-sm bg-green-100 text-green-800 border block";
                     statusBox.innerText = currentMode === "update" ? "🎉 อัปเดตข้อมูลสำเร็จ!" : `🎉 บันทึกข้อมูลเรียบร้อยแล้ว รหัสของคุณคือ: ${finalGeneratedId}`;
                     
-                    // หากทำงานสำเร็จ คืนค่าฟอร์มกลับสู่สภาวะปกติ (โหมด insert)
                     resetFormMode();
 
-                    // เปิดผลการค้นหาให้ดูอัตโนมัติ เพื่อตรวจสอบข้อมูลล่าสุด
                     if(currentUserRole === 'admin' || currentUserRole === 'user') {
                         document.getElementById('search-input').value = finalGeneratedId;
                         document.getElementById('search-btn').click();
