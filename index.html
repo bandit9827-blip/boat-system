@@ -162,8 +162,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">4. หมายเลขเรือ</label>
-                            <!-- เปลี่ยนเป็นข้อความ "สร้างอัตโนมัติ" แทนช่องตัวเลขเดิม -->
-                            <input type="text" id="code-number" value="สร้างอัตโนมัติ" readonly class="w-full p-2 bg-gray-100 border border-gray-300 rounded-lg text-xs font-bold text-gray-500 cursor-not-allowed">
+                            <input type="number" id="code-number" value="1" readonly class="w-full p-2 bg-gray-100 border border-gray-300 rounded-lg text-xs font-bold text-gray-500 cursor-not-allowed">
                         </div>
                     </div>
                 </div>
@@ -172,8 +171,7 @@
             <form id="boatForm" class="p-6 space-y-6">
                 <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg shadow-sm">
                     <span class="text-xs font-bold text-blue-700 uppercase tracking-wider block">รหัสเรือประจำระบบ</span>
-                    <!-- ตั้งค่า default เป็น XXX -->
-                    <input type="text" id="boat-id" name="boatId" readonly class="text-3xl font-extrabold text-blue-900 bg-transparent border-none p-0 focus:ring-0 focus:outline-none w-full tracking-wider mt-1" value="ดต-00-F-XXX">
+                    <input type="text" id="boat-id" name="boatId" readonly class="text-3xl font-extrabold text-blue-900 bg-transparent border-none p-0 focus:ring-0 focus:outline-none w-full tracking-wider mt-1" value="ดต-01-F-001">
                 </div>
 
                 <div class="space-y-4">
@@ -361,7 +359,7 @@
                 </div>
 
                 <hr class="border-slate-100">
-                
+               
                 <div class="flex flex-col items-center w-full mt-4">
                     <div class="w-full h-48 bg-slate-100 rounded-2xl border border-slate-300 shadow-md overflow-hidden flex items-center justify-center p-2">
                         <img id="view-boat-img" src="https://images.unsplash.com/photo-1516690561799-46d8f74f9abf?auto=format&fit=crop&q=80&w=800" class="w-full h-full object-contain">
@@ -480,9 +478,9 @@
                         document.getElementById('delete-btn').classList.add('hidden');
                     }
                     
-                    // สร้าง Prefix รหัสเรือรอไว้เลย (ถ้าเป็นคนที่มีสิทธิ์บันทึก)
+                    // โหลดเลขเรือล่าสุดหลังล็อคอิน (เฉพาะคนที่มีสิทธิ์บันทึก)
                     if(currentUserRole !== 'search') {
-                        updateBoatId();
+                        fetchLatestBoatNumber();
                     }
                 } else {
                     status.innerText = "❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
@@ -556,7 +554,7 @@
                     document.getElementById('result-card').classList.add('hidden');
                     document.getElementById('search-input').value = "";
                     document.getElementById('search-status').classList.add('hidden');
-                    updateBoatId(); // เตรียมฟอร์มสำหรับเพิ่มข้อมูลใหม่
+                    fetchLatestBoatNumber();
                 } else {
                     alert("❌ เกิดข้อผิดพลาด: " + data.error);
                 }
@@ -566,26 +564,36 @@
 
         // ================= ส่วนจัดการฟอร์ม (Form Logic) =================
 
-        // อัปเดตรหัสเรือตาม Dropdown (แสดงแค่ส่วนหน้า)
+        // อัปเดตรหัสเรือตาม Dropdown
         function updateBoatId() {
             if (isEditing) return; // หากอยู่ในโหมดแก้ไข จะไม่เปลี่ยนรหัสเรืออัตโนมัติ
 
             const district = document.getElementById('code-district').value;
-            const subDistrict = document.getElementById('code-subdistrict').value || "00";
+            const subDistrict = document.getElementById('code-subdistrict').value;
             const type = document.getElementById('code-type').value;
-            
-            // สร้างแค่ส่วนหน้า เช่น "ดต-01-F"
-            const prefix = `${district}-${subDistrict}-${type}`;
-            
-            // แสดงให้ผู้ใช้เห็นว่าจะมีการรันเลขต่อท้ายให้
-            document.getElementById('boat-id').value = `${prefix}-XXX`;
-            // เก็บ prefix ไว้ที่ data attribute เพื่อดึงไปส่งให้เซิร์ฟเวอร์
-            document.getElementById('boat-id').dataset.prefix = prefix; 
+            const numberVal = document.getElementById('code-number').value || "1";
+            const numberFormatted = String(numberVal).padStart(3, '0');
+            const boatId = `${district}-${subDistrict}-${type}-${numberFormatted}`;
+            document.getElementById('boat-id').value = boatId;
         }
 
         ['code-district', 'code-subdistrict', 'code-type'].forEach(id => {
             document.getElementById(id).addEventListener('change', updateBoatId);
         });
+
+        // ดึงเลขล่าสุด
+        function fetchLatestBoatNumber() {
+            if (isEditing) return;
+            fetch(`${API_URL}?getLatestCount=true`)
+            .then(res => res.json())
+            .then(data => {
+                if(data && data.nextNumber) {
+                    document.getElementById('code-number').value = data.nextNumber;
+                    updateBoatId();
+                }
+            })
+            .catch(err => console.log("ยังไม่สามารถดึงเลขล่าสุดได้อัตโนมัติ: ", err));
+        }
 
         // รีเซ็ตโหมดแก้ไข กลับเป็นโหมดเพิ่มข้อมูลปกติ
         function resetFormMode() {
@@ -606,7 +614,7 @@
 
             document.getElementById('cancel-edit-btn').classList.add('hidden');
             
-            updateBoatId(); // เตรียมฟอร์มให้เป็น -XXX เหมือนเดิม
+            fetchLatestBoatNumber();
         }
 
         document.getElementById('cancel-edit-btn').addEventListener('click', resetFormMode);
@@ -828,26 +836,17 @@
             e.preventDefault();
             const statusBox = document.getElementById('status-box');
             const submitBtn = document.getElementById('submit-btn');
-            
-            const currentMode = submitBtn.dataset.mode || "insert"; 
             const targetBoatId = document.getElementById('boat-id').value;
-
-            // ดึงค่าแยกส่วนจาก Dropdown เครื่องมือสร้างรหัส
-            const districtCode = document.getElementById('code-district').value;
-            const villageCode = document.getElementById('code-subdistrict').value || "01";
-            const boatTypeCode = document.getElementById('code-type').value;
+            const currentMode = submitBtn.dataset.mode || "insert"; // ดึงสถานะว่าเป็น insert หรือ update
 
             statusBox.className = "p-4 mb-4 rounded-lg text-center font-bold text-sm bg-amber-50 text-amber-800 border block animate-pulse";
-            statusBox.innerText = currentMode === "update" ? "⏳ กำลังอัปเดตข้อมูลเข้าระบบ..." : "⏳ กำลังอัปโหลดข้อมูลทั้งหมดและรันเลขเข้าระบบ...";
+            statusBox.innerText = currentMode === "update" ? "⏳ กำลังอัปเดตข้อมูลเข้าระบบ..." : "⏳ กำลังอัปโหลดข้อมูลทั้งหมดเข้าระบบ...";
             submitBtn.disabled = true;
 
             const formData = new FormData(this);
             const payload = {
-                action: currentMode,
-                boatId: currentMode === "update" ? targetBoatId : "",
-                districtCode: districtCode,   // ส่งรหัสตำบลไป
-                villageCode: villageCode,     // ส่งรหัสหมู่ไป
-                boatTypeCode: boatTypeCode,   // ส่งประเภทเรือไป
+                action: currentMode, // ส่ง action ไปยัง GAS ว่าเป็นการ insert หรือ update
+                boatId: targetBoatId,
                 ownerName: formData.get('ownerName'),
                 idcard : formData.get('idcard'),
                 addressNo: formData.get('addressNo'),
@@ -869,15 +868,15 @@
             .then(res => res.json())
             .then(res => {
                 if (res.result === "success") {
-                    const finalGeneratedId = res.boatId || targetBoatId;
-
                     statusBox.className = "p-4 mb-4 rounded-lg text-center font-bold text-sm bg-green-100 text-green-800 border block";
-                    statusBox.innerText = currentMode === "update" ? "🎉 อัปเดตข้อมูลสำเร็จ!" : `🎉 บันทึกข้อมูลเรียบร้อยแล้ว รหัสของคุณคือ: ${finalGeneratedId}`;
+                    statusBox.innerText = currentMode === "update" ? "🎉 อัปเดตข้อมูลสำเร็จ!" : "🎉 บันทึกข้อมูลเรียบร้อยแล้ว";
                     
+                    // หากทำงานสำเร็จ คืนค่าฟอร์มกลับสู่สภาวะปกติ (โหมด insert)
                     resetFormMode();
 
+                    // เปิดผลการค้นหาให้ดูอัตโนมัติ เพื่อตรวจสอบการเปลี่ยนแปลง
                     if(currentUserRole === 'admin' || currentUserRole === 'user') {
-                        document.getElementById('search-input').value = finalGeneratedId;
+                        document.getElementById('search-input').value = targetBoatId;
                         document.getElementById('search-btn').click();
                         statusBox.innerText += " (ระบบกำลังดึงรายละเอียดล่าสุดเพื่อแสดงผล)";
                     }
