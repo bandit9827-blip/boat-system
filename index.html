@@ -869,14 +869,27 @@
             .then(res => {
                 if (res.result === "success") {
                     statusBox.className = "p-4 mb-4 rounded-lg text-center font-bold text-sm bg-green-100 text-green-800 border block";
-                    statusBox.innerText = currentMode === "update" ? "🎉 อัปเดตข้อมูลสำเร็จ!" : "🎉 บันทึกข้อมูลเรียบร้อยแล้ว";
                     
-                    // หากทำงานสำเร็จ คืนค่าฟอร์มกลับสู่สภาวะปกติ (โหมด insert)
+                    // หากหลังบ้านมีการรันเลขใหม่ (savedBoatId) ให้อัปเดตตัวแปร targetBoatId
+                    let finalSavedId = res.savedBoatId ? res.savedBoatId : targetBoatId;
+
+                    if (currentMode === "update") {
+                        statusBox.innerText = "🎉 อัปเดตข้อมูลสำเร็จ!";
+                    } else {
+                        // แจ้งเตือนกรณีเลขเรือถูกเลื่อนคิวอัตโนมัติ
+                        if (finalSavedId !== targetBoatId) {
+                            statusBox.innerText = `🎉 บันทึกสำเร็จ! (ระบบจัดคิวรันเลขใหม่เป็น: ${finalSavedId})`;
+                        } else {
+                            statusBox.innerText = "🎉 บันทึกข้อมูลเรียบร้อยแล้ว";
+                        }
+                    }
+                    
+                    // คืนค่าฟอร์มกลับสู่สภาวะปกติ
                     resetFormMode();
 
-                    // เปิดผลการค้นหาให้ดูอัตโนมัติ เพื่อตรวจสอบการเปลี่ยนแปลง
+                    // เปิดผลการค้นหาให้ดูอัตโนมัติ โดยใช้ finalSavedId
                     if(currentUserRole === 'admin' || currentUserRole === 'user') {
-                        document.getElementById('search-input').value = targetBoatId;
+                        document.getElementById('search-input').value = finalSavedId;
                         document.getElementById('search-btn').click();
                         statusBox.innerText += " (ระบบกำลังดึงรายละเอียดล่าสุดเพื่อแสดงผล)";
                     }
@@ -884,10 +897,6 @@
                     statusBox.className = "p-4 mb-4 rounded-lg text-center font-bold text-sm bg-red-100 text-red-800 border block";
                     statusBox.innerText = "❌ ข้อผิดพลาด: " + res.error;
                 }
-            })
-            .catch(err => {
-                statusBox.className = "p-4 mb-4 rounded-lg text-center font-bold text-sm bg-red-100 text-red-800 border block";
-                statusBox.innerText = "❌ เกิดปัญหาการส่งข้อมูลติดต่อเซิร์ฟเวอร์ไม่ได้";
             })
             .finally(() => { submitBtn.disabled = false; });
         });
