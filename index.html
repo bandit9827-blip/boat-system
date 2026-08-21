@@ -22,6 +22,8 @@
     <!-- นำเข้าไลบรารีที่จำเป็น -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- เพิ่มบรรทัดนี้ลงไปเพื่อใช้แคปเจอร์รูป DOM -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
         body { font-family: 'Sarabun', sans-serif; background-color: #f0f7ff; }
@@ -902,34 +904,82 @@
             .finally(() => { submitBtn.disabled = false; });
         });
 
-        // ปุ่มคัดลอก และดาวน์โหลด QR Code
+        // ==========================================
+        // ปรับปรุงฟังก์ชันคัดลอกและดาวน์โหลด QR Code แบบเต็มกรอบ
+        // ==========================================
+        
+        // ปุ่มคัดลอกรูป QR Code
         document.getElementById('copy-qr-btn').addEventListener('click', async function() {
-            const qrImg = document.querySelector('#qrcode-container img');
-            if(!qrImg) { alert("ไม่มีรูปภาพ QR Code ให้คัดลอก"); return; }
+            const qrContainer = document.getElementById('qrcode-container');
+            if(!qrContainer || qrContainer.innerHTML === "") { alert("ไม่มีรูปภาพ QR Code ให้คัดลอก"); return; }
+            
+            const originalText = this.innerHTML;
+            this.innerHTML = "⏳ กำลังคัดลอก...";
+            this.disabled = true;
+
             try {
-                const response = await fetch(qrImg.src);
-                const blob = await response.blob();
-                await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-                const originalText = this.innerHTML;
-                this.innerHTML = "✅ คัดลอกสำเร็จ!";
-                this.className = this.className.replace('bg-blue-600', 'bg-green-600');
-                setTimeout(() => {
-                    this.innerHTML = originalText;
-                    this.className = this.className.replace('bg-green-600', 'bg-blue-600');
-                }, 2000);
+                // ใช้ html2canvas เพื่อแคปเจอร์ภาพจากกล่อง qrcode-container ทั้งหมด (รวมกรอบและพื้นหลัง)
+                const canvas = await html2canvas(qrContainer, {
+                    scale: 3, // เพิ่มความละเอียด (x3)
+                    backgroundColor: null, // ให้พื้นหลังส่วนที่อยู่นอกขอบโค้งมนโปร่งใส
+                    useCORS: true
+                });
+                
+                // แปลง Canvas เป็น Blob เพื่อบันทึกลงคลิปบอร์ด
+                canvas.toBlob(async function(blob) {
+                    try {
+                        await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+                        
+                        // เปลียนข้อความปุ่มเมื่อสำเร็จ
+                        const btn = document.getElementById('copy-qr-btn');
+                        btn.innerHTML = "✅ คัดลอกสำเร็จ!";
+                        btn.className = btn.className.replace('bg-blue-600', 'bg-green-600');
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.className = btn.className.replace('bg-green-600', 'bg-blue-600');
+                            btn.disabled = false;
+                        }, 2000);
+                    } catch (err) {
+                        alert("เบราว์เซอร์นี้ไม่รองรับการคัดลอกรูปภาพโดยตรง กรุณาใช้ปุ่มดาวน์โหลดภาพแทนครับ");
+                        document.getElementById('copy-qr-btn').innerHTML = originalText;
+                        document.getElementById('copy-qr-btn').disabled = false;
+                    }
+                }, 'image/png');
             } catch (err) {
-                alert("เบราว์เซอร์นี้ไม่รองรับการคัดลอกรูปภาพโดยตรง กรุณาใช้ปุ่มดาวน์โหลดภาพแทนครับ");
+                alert("เกิดข้อผิดพลาดในการคัดลอกรูปภาพ");
+                this.innerHTML = originalText;
+                this.disabled = false;
             }
         });
 
-        document.getElementById('download-qr-btn').addEventListener('click', function() {
-            const qrImg = document.querySelector('#qrcode-container img');
+        // ปุ่มดาวน์โหลด QR Code
+        document.getElementById('download-qr-btn').addEventListener('click', async function() {
+            const qrContainer = document.getElementById('qrcode-container');
             const boatId = document.getElementById('view-boat-id').innerText;
-            if(!qrImg) { alert("ไม่มีรูปภาพ QR Code ให้ดาวน์โหลด"); return; }
-            const link = document.createElement('a');
-            link.href = qrImg.src;
-            link.download = `QR_Boat_${boatId}.png`;
-            link.click();
+            if(!qrContainer || qrContainer.innerHTML === "") { alert("ไม่มีรูปภาพ QR Code ให้ดาวน์โหลด"); return; }
+            
+            const originalText = this.innerHTML;
+            this.innerHTML = "⏳ กำลังโหลด...";
+            this.disabled = true;
+
+            try {
+                // แคปเจอร์เหมือนปุ่มคัดลอก เพื่อให้รูปดาวน์โหลดได้สไตล์เดียวกัน
+                const canvas = await html2canvas(qrContainer, {
+                    scale: 3,
+                    backgroundColor: null,
+                    useCORS: true
+                });
+                
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = `QR_Boat_${boatId}.png`;
+                link.click();
+            } catch (err) {
+                alert("เกิดข้อผิดพลาดในการดาวน์โหลดรูปภาพ");
+            } finally {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            }
         });
 
         // พิมพ์และบันทึก PDF
