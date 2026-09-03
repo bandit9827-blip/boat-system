@@ -430,7 +430,67 @@
         let isEditing = false; // ตัวแปรเช็คว่าอยู่ในโหมดแก้ไขหรือไม่
         let currentSearchData = null; // เก็บข้อมูลล่าสุดที่ค้นหาเจอ เพื่อนำมา Edit
 
-        // 1. ระบบ Login
+        // ==========================================
+        // 1. ระบบ Login และการจำสถานะ (Local Storage)
+        // ==========================================
+        
+        // ฟังก์ชันตั้งค่าหน้าจอหลังล็อกอินสำเร็จ
+        function applyLoginState(username, role) {
+            currentUserRole = role;
+            
+            // ปิดหน้าล็อกอิน เปิดหน้าหลัก
+            document.getElementById('login-overlay').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('flex');
+            
+            // แสดงชื่อผู้ใช้
+            document.getElementById('current-user-display').innerText = username;
+            
+            // กำหนดข้อความแสดงสิทธิ์
+            let roleText = "เจ้าหน้าที่ทั่วไป (User)";
+            if (role === 'admin') roleText = "ผู้ดูแลระบบ (Admin)";
+            else if (role === 'search') roleText = "เจ้าหน้าที่ค้นหา (Search Only)";
+            document.getElementById('current-role-display').innerText = roleText;
+
+            // ควบคุมสิทธิ์การแสดงผล
+            if(currentUserRole === 'admin') {
+                document.getElementById('admin-insert-section').classList.remove('hidden');
+                document.getElementById('admin-search-section').classList.remove('hidden');
+                document.getElementById('manage-users-btn').classList.remove('hidden');
+                document.getElementById('delete-btn').classList.remove('hidden');
+            } else if (currentUserRole === 'search') {
+                document.getElementById('admin-insert-section').classList.add('hidden');
+                document.getElementById('admin-search-section').classList.remove('hidden');
+                document.getElementById('manage-users-btn').classList.add('hidden');
+                document.getElementById('delete-btn').classList.add('hidden');
+            } else {
+                document.getElementById('admin-insert-section').classList.remove('hidden');
+                document.getElementById('admin-search-section').classList.remove('hidden'); 
+                document.getElementById('manage-users-btn').classList.add('hidden');
+                document.getElementById('delete-btn').classList.add('hidden');
+            }
+            
+            // โหลดเลขเรือล่าสุดหลังล็อคอิน
+            if(currentUserRole !== 'search') {
+                fetchLatestBoatNumber();
+            }
+        }
+
+        // เช็คสถานะตอนโหลด/รีเฟรชหน้าเว็บ
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            // ถ้าเป็นการสแกน QR Code เข้ามา ให้ข้ามระบบจำรหัสผ่านไปเลย
+            if (urlParams.get('searchId')) return; 
+
+            // ตรวจสอบว่าเคยเข้าสู่ระบบไว้หรือไม่
+            const savedSession = localStorage.getItem('boatAppSession');
+            if (savedSession) {
+                const userData = JSON.parse(savedSession);
+                applyLoginState(userData.username, userData.role);
+            }
+        });
+
+        // จัดการเมื่อกดปุ่ม Login ใหม่
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const btn = document.getElementById('login-btn');
@@ -448,46 +508,14 @@
             .then(res => res.json())
             .then(data => {
                 if(data.result === "success") {
-                    currentUserRole = data.role;
+                    // บันทึกสถานะการล็อกอินลงในเครื่อง (Local Storage)
+                    localStorage.setItem('boatAppSession', JSON.stringify({ 
+                        username: data.username, 
+                        role: data.role 
+                    }));
                     
-                    // ปิดหน้าล็อกอิน เปิดหน้าหลัก
-                    document.getElementById('login-overlay').classList.add('hidden');
-                    document.getElementById('main-app').classList.remove('hidden');
-                    document.getElementById('main-app').classList.add('flex');
-                    
-                    // แสดงชื่อผู้ใช้
-                    document.getElementById('current-user-display').innerText = data.username;
-                    
-                    // กำหนดข้อความแสดงสิทธิ์
-                    let roleText = "เจ้าหน้าที่ทั่วไป (User)";
-                    if (data.role === 'admin') roleText = "ผู้ดูแลระบบ (Admin)";
-                    else if (data.role === 'search') roleText = "เจ้าหน้าที่ค้นหา (Search Only)";
-                    document.getElementById('current-role-display').innerText = roleText;
-
-                    // ควบคุมสิทธิ์การแสดงผล
-                    if(currentUserRole === 'admin') {
-                        document.getElementById('admin-insert-section').classList.remove('hidden');
-                        document.getElementById('admin-search-section').classList.remove('hidden');
-                        document.getElementById('manage-users-btn').classList.remove('hidden');
-                        document.getElementById('delete-btn').classList.remove('hidden');
-                    } else if (currentUserRole === 'search') {
-                        // ถ้าเป็น search ให้ซ่อนฟอร์มบันทึก และแสดงแค่ค้นหา
-                        document.getElementById('admin-insert-section').classList.add('hidden');
-                        document.getElementById('admin-search-section').classList.remove('hidden');
-                        document.getElementById('manage-users-btn').classList.add('hidden');
-                        document.getElementById('delete-btn').classList.add('hidden');
-                    } else {
-                        // สำหรับสิทธิ์ User
-                        document.getElementById('admin-insert-section').classList.remove('hidden');
-                        document.getElementById('admin-search-section').classList.remove('hidden'); 
-                        document.getElementById('manage-users-btn').classList.add('hidden');
-                        document.getElementById('delete-btn').classList.add('hidden');
-                    }
-                    
-                    // โหลดเลขเรือล่าสุดหลังล็อคอิน (เฉพาะคนที่มีสิทธิ์บันทึก)
-                    if(currentUserRole !== 'search') {
-                        fetchLatestBoatNumber();
-                    }
+                    // เรียกใช้ฟังก์ชันตั้งค่าหน้าจอ
+                    applyLoginState(data.username, data.role);
                 } else {
                     status.innerText = "❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
                     status.classList.remove('hidden');
@@ -501,8 +529,11 @@
         });
 
         // ปุ่มออกจากระบบ
-        document.getElementById('logout-btn').addEventListener('click', () => { location.reload(); });
-
+        document.getElementById('logout-btn').addEventListener('click', () => { 
+            // ล้างข้อมูลที่จำไว้ในเครื่อง
+            localStorage.removeItem('boatAppSession'); 
+            location.reload(); 
+        });
         // เปิด Modal จัดการผู้ใช้งาน
         document.getElementById('manage-users-btn').addEventListener('click', () => {
             const modal = document.getElementById('user-modal');
