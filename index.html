@@ -173,7 +173,7 @@
             <form id="boatForm" class="p-6 space-y-6">
                 <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg shadow-sm">
                     <span class="text-xs font-bold text-blue-700 uppercase tracking-wider block">รหัสเรือประจำระบบ</span>
-                  <input type="text" id="boat-id" name="boatId" readonly class="text-3xl font-extrabold text-blue-900 bg-transparent border-none p-0 focus:ring-0 focus:outline-none w-full tracking-wider mt-1" value="? ดต.-001">
+                  <input type="text" id="boat-id" name="boatId" readonly class="text-3xl font-extrabold text-blue-900 bg-transparent border-none p-0 focus:ring-0 focus:outline-none w-full tracking-wider mt-1" value="- ดต.-001">
                 </div>
 
                 <div class="space-y-4">
@@ -294,7 +294,7 @@
                     <p class="text-xs text-slate-300">กรอกรหัสเรือเพื่อดึงข้อมูลรูปภาพและรายละเอียดทั้งหมด</p>
                 </div>
                 <div class="flex gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
-                    <input type="text" id="search-input" placeholder="เช่น ดต-01-F-001" class="w-full p-2.5 rounded-lg text-slate-900 font-bold tracking-wider uppercase text-sm focus:outline-none">
+                    <input type="text" id="search-input" placeholder="เช่น 4พ001 หรือ 12ดต015" class="w-full p-2.5 rounded-lg text-slate-900 font-bold tracking-wider uppercase text-sm focus:outline-none">
                     <button type="button" id="search-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-6 py-2.5 rounded-lg text-sm shrink-0 shadow">ค้นหา</button>
                 </div>
             </div>
@@ -703,15 +703,24 @@
             
             if (!rawSearchId) { alert("กรุณากรอกรหัสเรือก่อนครับ"); return; }
 
-            let cleanId = rawSearchId.replace(/-/g, ''); 
             let searchId = rawSearchId; 
             
-            if (cleanId.length >= 7) {
-                let num = cleanId.slice(-3);
-                let type = cleanId.slice(-4, -3);
-                let sub = cleanId.slice(-6, -4);
-                let dist = cleanId.slice(0, -6);
-                searchId = `${dist}-${sub}-${type}-${num}`; 
+            // ลบช่องว่างออกทั้งหมดเพื่อให้ข้อความติดกัน (เช่น พิมพ์ "4 พ 001" จะกลายเป็น "4พ001")
+            let cleanText = rawSearchId.replace(/\s+/g, '');
+            
+            // ตรวจจับรูปแบบ: (เลขหมู่ 1-2 ตัว)(ตัวอักษรไทย)(อาจมีจุดหรือขีด)(เลขเรือ 1-3 ตัว)
+            let match = cleanText.match(/^(\d{1,2})([ก-๙]+)\.?\-?(\d{1,3})$/);
+            
+            if (match) {
+                let moo = match[1]; // เลขหมู่
+                let dist = match[2]; // ตัวย่อตำบล (เช่น พ, ดต)
+                let num = match[3].padStart(3, '0'); // เติม 0 ให้ครบ 3 หลัก เช่น 1 เป็น 001
+                
+                // นำมาประกอบกันให้ตรงกับฐานข้อมูล: "[หมู่] [ตำบล].-[เลขเรือ]"
+                searchId = `${moo} ${dist}.-${num}`; 
+            } else {
+                // หากพิมพ์มารูปแบบอื่นที่ไม่ตรงเงื่อนไข ให้เคลียร์ช่องว่างให้เป็นระเบียบเฉยๆ
+                searchId = rawSearchId.replace(/\s+/g, ' ').trim();
             }
 
             searchStatus.className = "p-3 bg-amber-50 text-amber-800 text-center font-medium text-sm border-b block animate-pulse";
