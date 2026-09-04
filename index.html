@@ -456,12 +456,12 @@
             else if (role === 'search') roleText = "เจ้าหน้าที่ค้นหา (Search Only)";
             document.getElementById('current-role-display').innerText = roleText;
 
-            // ควบคุมสิทธิ์การแสดงผล (แก้บล็อกเดิมของคุณเป็นแบบนี้)
+            // ควบคุมสิทธิ์การแสดงผล
             if(currentUserRole === 'admin') {
                 document.getElementById('admin-insert-section').classList.remove('hidden');
                 document.getElementById('admin-search-section').classList.remove('hidden');
                 document.getElementById('manage-users-btn').classList.remove('hidden');
-                document.getElementById('export-excel-btn').classList.remove('hidden'); // แสดงปุ่ม Excel
+                document.getElementById('export-excel-btn').classList.remove('hidden'); // 🌟 เฉพาะ Admin ที่เห็นปุ่ม Excel
                 document.getElementById('delete-btn').classList.remove('hidden');
             } else if (currentUserRole === 'search') {
                 document.getElementById('admin-insert-section').classList.add('hidden');
@@ -473,7 +473,7 @@
                 document.getElementById('admin-insert-section').classList.remove('hidden');
                 document.getElementById('admin-search-section').classList.remove('hidden'); 
                 document.getElementById('manage-users-btn').classList.add('hidden');
-                document.getElementById('export-excel-btn').classList.remove('hidden'); // ให้ User โหลดได้ด้วย
+                document.getElementById('export-excel-btn').classList.add('hidden'); // 🌟 ซ่อนปุ่ม Excel สำหรับ User ทั่วไปแล้ว
                 document.getElementById('delete-btn').classList.add('hidden');
             }
             
