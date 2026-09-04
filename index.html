@@ -1071,6 +1071,7 @@
                 // ดึงข้อมูลทั้งหมดจาก Google Apps Script
                fetch(API_URL, {
     method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" }, // ต้องมีบรรทัดนี้เพื่อไม่ให้เบราว์เซอร์บล็อก
     body: JSON.stringify({ action: "exportData" })
 })
                 .then(res => res.json())
@@ -1119,9 +1120,9 @@
                     }
                 })
                 .catch(err => {
-                    alert("❌ ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง");
-                    console.error(err);
-                })
+    alert("❌ ไม่สามารถดึงข้อมูลได้ สาเหตุ: " + err.message);
+    console.error(err);
+})
                 .finally(() => {
                     btn.innerHTML = originalText;
                     btn.disabled = false;
