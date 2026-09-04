@@ -1059,7 +1059,7 @@
             });
         }
         // ==========================================
-        // ฟังก์ชันสร้างและดาวน์โหลดไฟล์ Excel
+        // ฟังก์ชันสร้างและดาวน์โหลดไฟล์ Excel (เวอร์ชันมีรูป QR Code)
         // ==========================================
         if (document.getElementById('export-excel-btn')) {
             document.getElementById('export-excel-btn').addEventListener('click', function() {
@@ -1068,7 +1068,6 @@
                 btn.innerHTML = "⏳ กำลังดึงข้อมูล...";
                 btn.disabled = true;
 
-                // 🌟 ใช้ POST รูปแบบเดียวกับตอน Login (ไม่มี header) เพื่อทะลวงบล็อก CORS 🌟
                 fetch(API_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "exportData" })
@@ -1078,11 +1077,14 @@
                     if (res.result === "success") {
                         btn.innerHTML = "⏳ กำลังสร้างไฟล์...";
                         
-                        // นำข้อมูลที่ได้มาจัดเรียงคอลัมน์ใหม่ให้ตรงตามความต้องการ
                         const excelData = res.data.map(item => {
                             const currentUrl = window.location.origin + window.location.pathname; 
-                            // สร้างลิงก์ที่ใช้สำหรับสแกน QR Code
+                            
+                            // 1. ลิงก์ที่ใช้สแกนเข้าหน้ารายละเอียด
                             const qrUrl = `${currentUrl}?searchId=${encodeURIComponent(item.boatId)}`;
+                            
+                            // 2. ลิงก์สำหรับแปลงเป็นรูปภาพ QR Code ด้วย API ฟรี (qrserver.com)
+                            const qrImageApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}`;
                             
                             return {
                                 "1. รหัสเรือ": item.boatId || "-",
@@ -1095,22 +1097,43 @@
                                 "8. จังหวัด": item.province || "-",
                                 "9. เบอร์โทรศัพท์": item.phoneNumber || "-",
                                 "10. จุดจอดเรือ": item.mooringPoint || "-",
-                                "11. ลิงก์สำหรับ QR Code": qrUrl
+                                "11. ลิงก์ระบบ": qrUrl,
+                                "12. รูป QR Code": qrImageApiUrl // ใส่ URL ไว้ชั่วคราว เดี๋ยวเราจะแปลงเป็นสูตรด้านล่าง
                             };
                         });
 
-                        // สร้าง Worksheet และ Workbook จากข้อมูล
                         const worksheet = XLSX.utils.json_to_sheet(excelData);
+                        
+                        // --- ส่วนสำคัญ: แปลงคอลัมน์ L (12) ให้เป็นสูตรโชว์รูปของ Excel ---
+                        const range = XLSX.utils.decode_range(worksheet['!ref']);
+                        for (let R = 1; R <= range.e.r; ++R) {
+                            // คอลัมน์ L คือ index 11 (A=0, B=1, ... L=11)
+                            const cellAddress = XLSX.utils.encode_cell({ r: R, c: 11 }); 
+                            const cell = worksheet[cellAddress];
+                            
+                            if (cell && cell.v) {
+                                const imageUrl = cell.v;
+                                // สั่งเขียนสูตร Excel: =IMAGE("URL")
+                                worksheet[cellAddress] = { t: 's', f: `IMAGE("${imageUrl}")` };
+                            }
+                        }
+
                         const workbook = XLSX.utils.book_new();
                         XLSX.utils.book_append_sheet(workbook, worksheet, "รายชื่อเรือ");
 
-                        // ปรับความกว้างของคอลัมน์
+                        // ปรับความกว้างของคอลัมน์ (เพิ่มคอลัมน์ L ให้กว้าง 15)
                         const colWidths = [
                             { wch: 15 }, { wch: 15 }, { wch: 25 }, { wch: 10 }, 
                             { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, 
-                            { wch: 15 }, { wch: 25 }, { wch: 50 }
+                            { wch: 15 }, { wch: 25 }, { wch: 40 }, { wch: 15 } 
                         ];
                         worksheet['!cols'] = colWidths;
+                        
+                        // ปรับความสูงของแถวให้รูป QR Code โชว์ได้เต็มๆ แบบไม่โดนบีบ
+                        worksheet['!rows'] = [{hpt: 25}]; // ความสูงแถวหัวตาราง
+                        for (let R = 1; R <= range.e.r; ++R) {
+                            worksheet['!rows'].push({hpt: 85}); // ความสูงแถวข้อมูล (ปรับให้ใหญ่พอดีกับรูป)
+                        }
 
                         // สั่งดาวน์โหลดไฟล์ Excel
                         XLSX.writeFile(workbook, "รายงานการจัดระเบียบเรือ_ดอนตาล.xlsx");
