@@ -1068,8 +1068,11 @@
                 btn.innerHTML = "⏳ กำลังดึงข้อมูล...";
                 btn.disabled = true;
 
-                // เปลี่ยนมาใช้ GET (ลบ POST และ body ทิ้งไปเลย)
-                fetch(`${API_URL}?exportData=true`)
+                // 🌟 ใช้ POST รูปแบบเดียวกับตอน Login (ไม่มี header) เพื่อทะลวงบล็อก CORS 🌟
+                fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "exportData" })
+                })
                 .then(res => res.json())
                 .then(res => {
                     if (res.result === "success") {
