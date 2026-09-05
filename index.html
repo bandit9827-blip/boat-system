@@ -621,7 +621,7 @@
     const numberFormatted = String(numberVal).padStart(3, '0'); // จัดหมายเลขให้เป็น 3 หลัก (001)
 
     // ถ้ายังไม่ได้เลือกหมู่ ให้ใส่เครื่องหมาย ? ไว้ก่อน
-    const moo = subDistrict !== "" ? subDistrict : "?";
+    const moo = subDistrict !== "" ? subDistrict : "-";
 
     // จัดรูปแบบใหม่เป็น: [หมู่] [ตำบล]-[หมายเลข] (ตัวอย่าง: 2 ดต.-001)
     const boatId = `${moo} ${district}-${numberFormatted}`;
