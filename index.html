@@ -1115,7 +1115,7 @@
                             if (cell && cell.v) {
                                 const imageUrl = cell.v;
                                 // สั่งเขียนสูตร Excel: =IMAGE("URL")
-                                worksheet[cellAddress] = { t: 's', f: `IMAGE("${imageUrl}")` };
+                                worksheet[cellAddress] = { f: `IMAGE("${imageUrl}", 1)` };
                             }
                         }
 
