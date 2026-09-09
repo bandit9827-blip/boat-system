@@ -824,9 +824,19 @@
             document.querySelector('input[name="phoneNumber"]').value = currentSearchData.phoneNumber || '';
             document.querySelector('select[name="mooringPoint"]').value = currentSearchData.mooringPoint || '';
             document.querySelector('input[name="addressNo"]').value = currentSearchData.addressNo || '';
-            document.querySelector('select[name="moo"]').value = currentSearchData.moo || '';
+            ocument.querySelector('select[name="moo"]').value = currentSearchData.moo || '';
             document.querySelector('select[name="subDistrict"]').value = currentSearchData.subDistrict || '';
             
+            // นำประเภทเรือกลับไปแสดงที่ Dropdown เครื่องมือสร้างรหัส
+            if (currentSearchData.boatType) {
+                const typeSel = document.getElementById('code-type');
+                for (let i = 0; i < typeSel.options.length; i++) {
+                    if (typeSel.options[i].text === currentSearchData.boatType || typeSel.options[i].value === currentSearchData.boatType) {
+                        typeSel.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
             // นำรูปไปแสดงบน Preview
             if (currentSearchData.ownerImage) {
                 document.getElementById('form-owner-preview').src = currentSearchData.ownerImage;
@@ -905,9 +915,15 @@
             submitBtn.disabled = true;
 
             const formData = new FormData(this);
+            
+            // ดึงค่า "ประเภทเรือ" จาก Dropdown แบบเอาข้อความเต็ม (เช่น F (เรือประมง))
+            const typeSelect = document.getElementById('code-type');
+            const boatTypeText = typeSelect.options[typeSelect.selectedIndex].text;
+
             const payload = {
-                action: currentMode, // ส่ง action ไปยัง GAS ว่าเป็นการ insert หรือ update
+                action: currentMode, 
                 boatId: targetBoatId,
+                boatType: boatTypeText, // <--- เพิ่มบรรทัดนี้เพื่อส่งประเภทเรือ
                 ownerName: formData.get('ownerName'),
                 idcard : formData.get('idcard'),
                 addressNo: formData.get('addressNo'),
