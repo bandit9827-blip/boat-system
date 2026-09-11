@@ -1105,18 +1105,18 @@
                             const qrImageApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}`;
                             
                             return {
-                                "1. รหัสเรือ": item.boatId || "-",
-                                "2. ประเภทเรือ": item.boatType || "-",
-                                "3. ชื่อ-นามสกุล": item.ownerName || "-",
-                                "4. บ้านเลขที่": item.addressNo || "-",
-                                "5. หมู่ที่": item.moo || "-",
-                                "6. ตำบล": item.subDistrict || "-",
-                                "7. อำเภอ": item.district || "-",
-                                "8. จังหวัด": item.province || "-",
-                                "9. เบอร์โทรศัพท์": item.phoneNumber || "-",
-                                "10. จุดจอดเรือ": item.mooringPoint || "-",
-                                "11. ลิงก์ระบบ": qrUrl,
-                                "12. รูป QR Code": qrImageApiUrl // ใส่ URL ไว้ชั่วคราว เดี๋ยวเราจะแปลงเป็นสูตรด้านล่าง
+                                "รหัสเรือ": item.boatId || "-",
+                                "ประเภทเรือ": item.boatType || "-",
+                                "ชื่อ-นามสกุล": item.ownerName || "-",
+                                "บ้านเลขที่": item.addressNo || "-",
+                                "หมู่ที่": item.moo || "-",
+                                "ตำบล": item.subDistrict || "-",
+                                "อำเภอ": item.district || "-",
+                                "จังหวัด": item.province || "-",
+                                "เบอร์โทรศัพท์": item.phoneNumber || "-",
+                                "จุดจอดเรือ": item.mooringPoint || "-",
+                                "ลิงก์ระบบ": qrUrl,
+                                "รูป QR Code": qrImageApiUrl // ใส่ URL ไว้ชั่วคราว เดี๋ยวเราจะแปลงเป็นสูตรด้านล่าง
                             };
                         });
 
