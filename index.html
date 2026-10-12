@@ -189,7 +189,6 @@
                                 <option value="จุดรวมเรือบ้านโคก">จุดรวมเรือบ้านโคก</option>
                                 <option value="จุดรวมเรือศาลาขาว บ้านหนองหล่ม">จุดรวมเรือศาลาขาว บ้านหนองหล่ม</option>
                                 <option value="จุดรวมเรือบ้านนามหาราช">จุดรวมเรือบ้านนามหาราช</option>
-                                <option value="จุดรวมเรือปากห้วยบังอี่ บ้านนาตาล">จุดรวมเรือปากห้วยบังอี่ บ้านนาตาล</option>
                                 <option value="จุดรวมเรือสถานีสูบน้ำบ้านนาตาล">จุดรวมเรือสถานีสูบน้ำบ้านนาตาล</option>
                                 <option value="จุดรวมเรือบ้านนาห้วยกอก">จุดรวมเรือบ้านนาห้วยกอก</option>
                                 <option value="จุดรวมเรือสถานีสูบน้ำบ้านตาลใหม่">จุดรวมเรือสถานีสูบน้ำบ้านตาลใหม่</option>
@@ -388,7 +387,6 @@
                 <option value="จุดรวมเรือบ้านโคก">จุดรวมเรือบ้านโคก</option>
                 <option value="จุดรวมเรือศาลาขาว บ้านหนองหล่ม">จุดรวมเรือศาลาขาว บ้านหนองหล่ม</option>
                 <option value="จุดรวมเรือบ้านนามหาราช">จุดรวมเรือบ้านนามหาราช</option>
-                <option value="จุดรวมเรือปากห้วยบังอี่ บ้านนาตาล">จุดรวมเรือปากห้วยบังอี่ บ้านนาตาล</option>
                 <option value="จุดรวมเรือสถานีสูบน้ำบ้านนาตาล">จุดรวมเรือสถานีสูบน้ำบ้านนาตาล</option>
                 <option value="จุดรวมเรือบ้านนาห้วยกอก">จุดรวมเรือบ้านนาห้วยกอก</option>
                 <option value="จุดรวมเรือสถานีสูบน้ำบ้านตาลใหม่">จุดรวมเรือสถานีสูบน้ำบ้านตาลใหม่</option>
@@ -417,9 +415,9 @@
         let isEditing = false;
         let currentSearchData = null;
 
-        // ฟังก์ชันตั้งค่าการแสดงผลปุ่ม
+        // ฟังก์ชันตั้งค่าการแสดงผลปุ่ม (เฉพาะ Admin เท่านั้น)
         function checkMooringRoleVisibility() {
-            if(currentUserRole === 'admin' || currentUserRole === 'user') {
+            if(currentUserRole === 'admin') {
                 document.getElementById('mooring-qr-menu-btn').classList.remove('hidden');
             } else {
                 document.getElementById('mooring-qr-menu-btn').classList.add('hidden');
