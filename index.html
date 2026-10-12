@@ -386,13 +386,17 @@
                 <option value="จุดรวมเรือสถานีสูบน้ำบ้านนาตาล">จุดรวมเรือสถานีสูบน้ำบ้านนาตาล</option>
                 <option value="จุดรวมเรือบ้านนาห้วยกอก">จุดรวมเรือบ้านนาห้วยกอก</option>
                 <option value="จุดรวมเรือสถานีสูบน้ำบ้านตาลใหม่">จุดรวมเรือสถานีสูบน้ำบ้านตาลใหม่</option>
-                <option value="จุดรวมเรือบท่าหลวงบ้านโพธิ์ไทร">จุดรวมเรือท่าหลวงบ้านโพธิ์ไทร</option>
+                <option value="จุดรวมเรือท่าหลวงบ้านโพธิ์ไทร">จุดรวมเรือท่าหลวงบ้านโพธิ์ไทร</option>
             </select>
             
             <div id="mooring-qr-container" class="bg-white p-4 rounded-xl shadow-inner border border-slate-200 flex items-center justify-center mx-auto w-48 h-48 mb-4 hidden"></div>
             
             <div class="flex gap-3 pt-4 border-t mt-4">
                 <button type="button" onclick="document.getElementById('mooring-modal').classList.add('hidden'); document.getElementById('mooring-modal').classList.remove('flex');" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2.5 rounded-lg transition">ปิด</button>
+                
+                <!-- ปุ่มดาวน์โหลดที่เพิ่มเข้ามาใหม่ (ซ่อนไว้ก่อนจนกว่าจะสร้าง QR) -->
+                <button type="button" id="download-mooring-qr-btn" class="hidden flex-1 bg-slate-700 hover:bg-slate-800 text-white font-bold py-2.5 rounded-lg shadow transition">💾 โหลดภาพ</button>
+                
                 <button type="button" id="generate-mooring-qr-btn" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-lg shadow transition">สร้าง QR</button>
             </div>
         </div>
@@ -627,13 +631,45 @@
             const qrUrl = `${currentUrl}?mooring=${encodeURIComponent(selectedMooring)}`;
 
             new QRCode(qrContainer, {
-    text: qrUrl, 
-    width: 150,
-    height: 150,
-    colorDark: "#000000", // เปลี่ยนเป็นสีดำ
-    colorLight: "#ffffff",
-    correctLevel: QRCode.CorrectLevel.H
-});
+                text: qrUrl, 
+                width: 150,
+                height: 150,
+                colorDark: "#000000", // สีดำ
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            // เพิ่มคำสั่งแสดงปุ่มโหลดภาพหลังจากสร้าง QR เสร็จ
+            document.getElementById('download-mooring-qr-btn').classList.remove('hidden');
+        });
+
+        // ฟังก์ชันดาวน์โหลดภาพ QR Code จุดรวมเรือ (ที่ขาดไป)
+        document.getElementById('download-mooring-qr-btn').addEventListener('click', async function() {
+            const qrContainer = document.getElementById('mooring-qr-container');
+            const mooringName = document.getElementById('select-mooring-generate').value;
+            if(!qrContainer || qrContainer.innerHTML === "") return;
+            
+            const originalText = this.innerHTML;
+            this.innerHTML = "⏳ กำลังโหลด...";
+            this.disabled = true;
+
+            try {
+                const canvas = await html2canvas(qrContainer, {
+                    scale: 3, 
+                    backgroundColor: "#ffffff",
+                    useCORS: true
+                });
+                
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = `QR_${mooringName}.png`; 
+                link.click();
+            } catch (err) {
+                alert("เกิดข้อผิดพลาดในการดาวน์โหลดรูปภาพ");
+            } finally {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            }
         });
 
         // โหลดข้อมูลเรือประจำจุดรวมเรือ
@@ -929,214 +965,3 @@
                 addressNo: formData.get('addressNo'),
                 moo: formData.get('moo'),
                 subDistrict: formData.get('subDistrict'),
-                district: formData.get('district'),
-                province: formData.get('province'),
-                phoneNumber: formData.get('phoneNumber'),
-                mooringPoint: formData.get('mooringPoint'),
-                ownerImage: ownerImgBase64,
-                boatImage: boatImgBase64
-            };
-
-            fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(res => {
-                if (res.result === "success") {
-                    statusBox.className = "p-4 mb-4 rounded-lg text-center font-bold text-sm bg-green-100 text-green-800 border block";
-                    let finalSavedId = res.savedBoatId ? res.savedBoatId : targetBoatId;
-
-                    if (currentMode === "update") {
-                        statusBox.innerText = "🎉 อัปเดตข้อมูลสำเร็จ!";
-                    } else {
-                        if (finalSavedId !== targetBoatId) {
-                            statusBox.innerText = `🎉 บันทึกสำเร็จ! (ระบบจัดคิวรันเลขใหม่เป็น: ${finalSavedId})`;
-                        } else {
-                            statusBox.innerText = "🎉 บันทึกข้อมูลเรียบร้อยแล้ว";
-                        }
-                    }
-                    resetFormMode();
-
-                    if(currentUserRole === 'admin' || currentUserRole === 'user') {
-                        document.getElementById('search-input').value = finalSavedId;
-                        document.getElementById('search-btn').click();
-                        statusBox.innerText += " (ระบบกำลังดึงรายละเอียดล่าสุดเพื่อแสดงผล)";
-                    }
-                } else {
-                    statusBox.className = "p-4 mb-4 rounded-lg text-center font-bold text-sm bg-red-100 text-red-800 border block";
-                    statusBox.innerText = "❌ ข้อผิดพลาด: " + res.error;
-                }
-            })
-            .finally(() => { submitBtn.disabled = false; });
-        });
-
-        document.getElementById('copy-qr-btn').addEventListener('click', async function() {
-            const qrContainer = document.getElementById('qrcode-container');
-            if(!qrContainer || qrContainer.innerHTML === "") { alert("ไม่มีรูปภาพ QR Code ให้คัดลอก"); return; }
-            
-            const originalText = this.innerHTML;
-            this.innerHTML = "⏳ กำลังคัดลอก...";
-            this.disabled = true;
-
-            try {
-                const canvas = await html2canvas(qrContainer, {
-                    scale: 3, 
-                    backgroundColor: null, 
-                    useCORS: true
-                });
-                
-                canvas.toBlob(async function(blob) {
-                    try {
-                        await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-                        const btn = document.getElementById('copy-qr-btn');
-                        btn.innerHTML = "✅ คัดลอกสำเร็จ!";
-                        btn.className = btn.className.replace('bg-blue-600', 'bg-green-600');
-                        setTimeout(() => {
-                            btn.innerHTML = originalText;
-                            btn.className = btn.className.replace('bg-green-600', 'bg-blue-600');
-                            btn.disabled = false;
-                        }, 2000);
-                    } catch (err) {
-                        alert("เบราว์เซอร์นี้ไม่รองรับการคัดลอกรูปภาพโดยตรง กรุณาใช้ปุ่มดาวน์โหลดภาพแทนครับ");
-                        document.getElementById('copy-qr-btn').innerHTML = originalText;
-                        document.getElementById('copy-qr-btn').disabled = false;
-                    }
-                }, 'image/png');
-            } catch (err) {
-                alert("เกิดข้อผิดพลาดในการคัดลอกรูปภาพ");
-                this.innerHTML = originalText;
-                this.disabled = false;
-            }
-        });
-
-        document.getElementById('download-qr-btn').addEventListener('click', async function() {
-            const qrContainer = document.getElementById('qrcode-container');
-            const boatId = document.getElementById('view-boat-id').innerText;
-            if(!qrContainer || qrContainer.innerHTML === "") { alert("ไม่มีรูปภาพ QR Code ให้ดาวน์โหลด"); return; }
-            
-            const originalText = this.innerHTML;
-            this.innerHTML = "⏳ กำลังโหลด...";
-            this.disabled = true;
-
-            try {
-                const canvas = await html2canvas(qrContainer, {
-                    scale: 3,
-                    backgroundColor: null,
-                    useCORS: true
-                });
-                
-                const link = document.createElement('a');
-                link.href = canvas.toDataURL('image/png');
-                link.download = `QR_Boat_${boatId}.png`;
-                link.click();
-            } catch (err) {
-                alert("เกิดข้อผิดพลาดในการดาวน์โหลดรูปภาพ");
-            } finally {
-                this.innerHTML = originalText;
-                this.disabled = false;
-            }
-        });
-
-        if (document.getElementById('print-btn')) {
-            document.getElementById('print-btn').addEventListener('click', () => window.print());
-        }
-
-        if (document.getElementById('save-pdf-btn')) {
-            document.getElementById('save-pdf-btn').addEventListener('click', function() {
-                const element = document.getElementById('result-card');
-                const boatId = document.getElementById('view-boat-id').innerText;
-                const opt = {
-                    margin: [5, 5, 5, 5],
-                    filename: `ข้อมูลเรือ_${boatId}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowY: 0 }, 
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
-                html2pdf().set(opt).from(element).save();
-            });
-        }
-
-        if (document.getElementById('export-excel-btn')) {
-            document.getElementById('export-excel-btn').addEventListener('click', function() {
-                const btn = this;
-                const originalText = btn.innerHTML;
-                btn.innerHTML = "⏳ กำลังดึงข้อมูล...";
-                btn.disabled = true;
-
-                fetch(API_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "exportData" })
-                })
-                .then(res => res.json())
-                .then(res => {
-                    if (res.result === "success") {
-                        btn.innerHTML = "⏳ กำลังสร้างไฟล์...";
-                        
-                        const baseUrl = window.location.href.split('?')[0]; 
-                        
-                        const excelData = res.data.map(item => {
-                            const qrUrl = `${baseUrl}?searchId=${encodeURIComponent(item.boatId)}`;
-                            const qrImageApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}`;
-                            
-                            return {
-                                "รหัสเรือ": item.boatId || "-",
-                                "ประเภทเรือ": item.boatType || "-",
-                                "ชื่อ-นามสกุล": item.ownerName || "-",
-                                "บ้านเลขที่": item.addressNo || "-",
-                                "หมู่ที่": item.moo || "-",
-                                "ตำบล": item.subDistrict || "-",
-                                "อำเภอ": item.district || "-",
-                                "จังหวัด": item.province || "-",
-                                "เบอร์โทรศัพท์": item.phoneNumber || "-",
-                                "จุดจอดเรือ": item.mooringPoint || "-",
-                                "รูป QR Code": qrImageApiUrl
-                            };
-                        });
-
-                        const worksheet = XLSX.utils.json_to_sheet(excelData);
-                        
-                        const range = XLSX.utils.decode_range(worksheet['!ref']);
-                        for (let R = 1; R <= range.e.r; ++R) {
-                            const imgCellAddress = XLSX.utils.encode_cell({ r: R, c: 10 }); 
-                            const imgCell = worksheet[imgCellAddress];
-                            if (imgCell && imgCell.v) {
-                                const imageUrl = imgCell.v;
-                                worksheet[imgCellAddress] = { f: `IMAGE("${imageUrl}", 1)` };
-                            }
-                        }
-
-                        const workbook = XLSX.utils.book_new();
-                        XLSX.utils.book_append_sheet(workbook, worksheet, "รายชื่อเรือ");
-
-                        const colWidths = [
-                            { wch: 15 }, { wch: 15 }, { wch: 25 }, { wch: 10 }, 
-                            { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, 
-                            { wch: 15 }, { wch: 25 }, { wch: 15 }  
-                        ];
-                        worksheet['!cols'] = colWidths;
-                        
-                        worksheet['!rows'] = [{hpt: 25}]; 
-                        for (let R = 1; R <= range.e.r; ++R) {
-                            worksheet['!rows'].push({hpt: 85}); 
-                        }
-
-                        XLSX.writeFile(workbook, "รายงานการจัดระเบียบเรือ_ดอนตาล.xlsx");
-                    } else {
-                        alert("❌ เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + res.error);
-                    }
-                })
-                .catch(err => {
-                    alert("❌ ไม่สามารถดึงข้อมูลได้ สาเหตุ: " + err.message);
-                    console.error(err);
-                })
-                .finally(() => {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                });
-            });
-        }
-    </script>
-</body>
-</html>
